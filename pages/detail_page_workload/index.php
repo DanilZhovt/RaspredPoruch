@@ -1,8 +1,10 @@
 <?php
 require_once dirname(__DIR__) . '/../classes/ApiClient.php';
+require_once dirname(__DIR__) . '/../config/constants.php';
+
 $number = $_GET['number'] ?? '';
 
-$api = new ApiClient('http://10.128.240.232/university_volgmu_test/ru/hs/api');
+$api = new ApiClient(BASE_URL_API_1C);
 
 $rows = $api->getWorkloadByNumber($number);
 ?>

@@ -1,13 +1,15 @@
 <?php
+require_once dirname(__DIR__) . '/config/constants.php';
+
 class ApiClient {
     private $baseUrl;
     private $username;
     private $password;
 
-    public function __construct($baseUrl, $username = 'danil.zhovtobryuh', $password = '9jgejj42') {
+    public function __construct($baseUrl) {
         $this->baseUrl = $baseUrl;
-        $this->username = $username;
-        $this->password = $password;
+        $this->username = USERNAME_API_1C;
+        $this->password = PASSWORD_API_1C;
     }
 
     private function request($endpoint, $params = []) {
