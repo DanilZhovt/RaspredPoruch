@@ -16,6 +16,15 @@ function renderTable(filteredData) {
             <td>${item.УчебныйГод ?? ''}</td>
         `;
 
+        row.addEventListener('click', () => {
+            if (item.Номер) {
+                const number = encodeURIComponent(item.Номер);
+                window.location.href = `https://my-module.local/pages/detail_page_workload/?number=${number}`;
+            }
+        });
+
+        row.style.cursor = 'pointer';
+
         tbody.appendChild(row);
     });
 }
