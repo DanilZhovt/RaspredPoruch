@@ -19,7 +19,67 @@ $rows = $api->getWorkloadByNumber($number);
 <body>
 
 <div class="header">
-    <h3>Детализация нагрузки № <?= htmlspecialchars($number) ?></h3>
+    <label>Дисциплина:
+        <select id="disciplineFilter">
+            <option value="">Все</option>
+            <?php
+            $disciplines = array_unique(array_column($rows, 'Дисциплина'));
+            foreach ($disciplines as $d):
+                if (!$d) continue;
+                ?>
+                <option value="<?= htmlspecialchars($d) ?>">
+                    <?= htmlspecialchars($d) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </label>
+
+    <label>Тип занятия:
+        <select id="typeFilter">
+            <option value="">Все</option>
+            <?php
+            $types = array_unique(array_column($rows, 'Нагрузка'));
+            foreach ($types as $t):
+                if (!$t) continue;
+                ?>
+                <option value="<?= htmlspecialchars($t) ?>">
+                    <?= htmlspecialchars($t) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </label>
+
+    <label>Период контроля:
+        <select id="periodFilter">
+            <option value="">Все</option>
+            <?php
+            $periods = array_unique(array_column($rows, 'ПериодКонтроля'));
+            foreach ($periods as $p):
+                if (!$p) continue;
+                ?>
+                <option value="<?= htmlspecialchars($p) ?>">
+                    <?= htmlspecialchars($p) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </label>
+
+    <label>Направление:
+        <select id="directionFilter">
+            <option value="">Все</option>
+            <?php
+            $dirs = array_unique(array_column($rows, 'КонтингентНагрузки'));
+            foreach ($dirs as $d):
+                if (!$d) continue;
+                ?>
+                <option value="<?= htmlspecialchars($d) ?>">
+                    <?= htmlspecialchars($d) ?>
+                </option>
+            <?php endforeach; ?>
+        </select>
+    </label>
+
+    <button id="applyFilterBtn">Применить фильтр</button>
 </div>
 
 <div class="main-content">
@@ -39,14 +99,19 @@ $rows = $api->getWorkloadByNumber($number);
             </tr>
 
             <?php $i = 1; foreach ($rows as $row): ?>
-                <tr>
+                <tr
+                        data-discipline="<?= htmlspecialchars($row['Дисциплина'] ?? '') ?>"
+                        data-type="<?= htmlspecialchars($row['Нагрузка'] ?? '') ?>"
+                        data-period="<?= htmlspecialchars($row['ПериодКонтроля'] ?? '') ?>"
+                        data-direction="<?= htmlspecialchars($row['КонтингентНагрузки'] ?? '') ?>"
+                >
                     <td><?= $i++ ?></td>
-                    <td><?= $row['Дисциплина'] ?></td>
-                    <td><?= $row['Нагрузка'] ?></td>
-                    <td><?= $row['ПериодКонтроля'] ?></td>
-                    <td><?= $row['КонтингентНагрузки'] ?></td>
-                    <td><?= $row['Количество'] ?></td>
-                    <td><?= $row['Распределено'] ?></td>
+                    <td><?= htmlspecialchars($row['Дисциплина'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($row['Нагрузка'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($row['ПериодКонтроля'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($row['КонтингентНагрузки'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($row['Количество'] ?? '') ?></td>
+                    <td><?= htmlspecialchars($row['Распределено'] ?? '') ?></td>
                 </tr>
             <?php endforeach; ?>
         </table>
@@ -73,5 +138,6 @@ $rows = $api->getWorkloadByNumber($number);
     <button>Сформировать отчет</button>
 </div>
 
+<script src="scripts.js"></script>
 </body>
 </html>
