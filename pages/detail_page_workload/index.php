@@ -1,26 +1,10 @@
 <?php
-
+require_once dirname(__DIR__) . '/../classes/ApiClient.php';
 $number = $_GET['number'] ?? '';
 
-$url = "http://10.128.240.232/university_volgmu_test/ru/hs/api/GetRaspredPoruchByNum?number=" . $number;
+$api = new ApiClient('http://10.128.240.232/university_volgmu_test/ru/hs/api');
 
-$username = "danil.zhovtobryuh";
-$password = "9jgejj42";
-
-$ch = curl_init();
-
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
-
-$response = curl_exec($ch);
-
-curl_close($ch);
-
-$data = json_decode($response, true);
-$rows = $data['РасчетЧасов'] ?? [];
-
+$rows = $api->getWorkloadByNumber($number);
 ?>
 <!DOCTYPE html>
 <html lang="ru">

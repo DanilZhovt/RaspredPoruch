@@ -1,30 +1,9 @@
 <?php
-$url = "http://10.128.240.232/university_volgmu_test/ru/hs/api/GetRaspredPoruch";
+require_once dirname(__DIR__) . '/../classes/ApiClient.php';
 
-$username = "danil.zhovtobryuh";
-$password = "9jgejj42";
+$api = new ApiClient('http://10.128.240.232/university_volgmu_test/ru/hs/api');
 
-$ch = curl_init();
-
-curl_setopt($ch, CURLOPT_URL, $url);
-curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
-curl_setopt($ch, CURLOPT_USERPWD, "$username:$password");
-
-$response = curl_exec($ch);
-
-$error = curl_error($ch);
-
-curl_close($ch);
-
-$data = [];
-
-if (!$error) {
-    $decoded = json_decode($response, true);
-    if (is_array($decoded)) {
-        $data = $decoded;
-    }
-}
+$data = $api->getAllWorkloads();
 ?>
 
 <!DOCTYPE html>
