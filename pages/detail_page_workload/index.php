@@ -49,12 +49,10 @@ $rows = $api->getWorkloadByNumber($number);
                     <td><?= $row['Распределено'] ?></td>
                 </tr>
             <?php endforeach; ?>
-
         </table>
     </div>
 
     <div class="sidebar">
-
         <?php foreach ($rows as $row): ?>
             <?php if (!empty($row['Сотрудники'])): ?>
                 <?php foreach ($row['Сотрудники'] as $t): ?>
@@ -67,9 +65,7 @@ $rows = $api->getWorkloadByNumber($number);
                 <?php endforeach; ?>
             <?php endif; ?>
         <?php endforeach; ?>
-
     </div>
-
 </div>
 
 <div class="footer">

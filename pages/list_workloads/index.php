@@ -3,7 +3,6 @@ require_once dirname(__DIR__) . '/../classes/ApiClient.php';
 require_once dirname(__DIR__) . '/../config/constants.php';
 
 $api = new ApiClient(BASE_URL_API_1C);
-
 $data = $api->getAllWorkloads();
 ?>
 
@@ -22,12 +21,30 @@ $data = $api->getAllWorkloads();
     <label>Кафедра:
         <select id="kafedraFilter">
             <option value="">Все</option>
+            <?php
+            $kafedras = array_unique(array_column($data, 'Кафедра'));
+            foreach ($kafedras as $k):
+                if (!$k) continue;
+                ?>
+                <option value="<?= htmlspecialchars($k) ?>">
+                    <?= htmlspecialchars($k) ?>
+                </option>
+            <?php endforeach; ?>
         </select>
     </label>
 
     <label>Учебный год:
         <select id="yearFilter">
             <option value="">Все</option>
+            <?php
+            $years = array_unique(array_column($data, 'УчебныйГод'));
+            foreach ($years as $y):
+                if (!$y) continue;
+                ?>
+                <option value="<?= htmlspecialchars($y) ?>">
+                    <?= htmlspecialchars($y) ?>
+                </option>
+            <?php endforeach; ?>
         </select>
     </label>
 
@@ -46,15 +63,23 @@ $data = $api->getAllWorkloads();
         </tr>
         </thead>
 
-        <tbody id="table-body"></tbody>
+        <tbody id="table-body">
+        <?php foreach ($data as $item): ?>
+            <tr
+                    data-kafedra="<?= htmlspecialchars($item['Кафедра'] ?? '') ?>"
+                    data-year="<?= htmlspecialchars($item['УчебныйГод'] ?? '') ?>"
+                    onclick="location.href='/pages/detail_page_workload/?number=<?= urlencode($item['Номер']) ?>'"
+                    style="cursor: pointer;"
+            >
+                <td><?= htmlspecialchars($item['Номер'] ?? '') ?></td>
+                <td><?= htmlspecialchars($item['Кафедра'] ?? '') ?></td>
+                <td><?= htmlspecialchars($item['УчебныйГод'] ?? '') ?></td>
+            </tr>
+        <?php endforeach; ?>
+        </tbody>
     </table>
 </div>
 
-<script>
-    window.phpData = <?php echo json_encode($data, JSON_UNESCAPED_UNICODE); ?>;
-</script>
-
 <script src="scripts.js"></script>
-
 </body>
 </html>
