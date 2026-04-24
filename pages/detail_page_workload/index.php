@@ -118,18 +118,18 @@ $rows = $api->getWorkloadByNumber($number);
     </div>
 
     <div class="sidebar">
-        <?php foreach ($rows as $row): ?>
-            <?php if (!empty($row['Сотрудники'])): ?>
-                <?php foreach ($row['Сотрудники'] as $t): ?>
+        <?php /*foreach ($rows as $row): */?><!--
+            <?php /*if (!empty($row['Сотрудники'])): */?>
+                <?php /*foreach ($row['Сотрудники'] as $t): */?>
                     <div class="yellow">
-                        <?= $t['Сотрудник'] ?><br>
-                        <?= $t['Должность'] ?><br>
-                        <?= $t['Ставка'] ?><br>
-                        Мин: <?= $t['МинКол'] ?> / Макс: <?= $t['МаксКол'] ?>
+                        <?php /*= $t['Сотрудник'] */?><br>
+                        <?php /*= $t['Должность'] */?><br>
+                        <?php /*= $t['Ставка'] */?><br>
+                        Мин: <?php /*= $t['МинКол'] */?> / Макс: <?php /*= $t['МаксКол'] */?>
                     </div>
-                <?php endforeach; ?>
-            <?php endif; ?>
-        <?php endforeach; ?>
+                <?php /*endforeach; */?>
+            <?php /*endif; */?>
+        --><?php /*endforeach; */?>
     </div>
 </div>
 
