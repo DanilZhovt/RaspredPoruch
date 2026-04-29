@@ -120,17 +120,16 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
     <div class="sidebar">
         <?php foreach ($teachers as $teacher): ?>
             <?php if (!empty($teacher['Сотрудник'])): ?>
-
                 <button type="button" class="teacher-btn">
                     <div>
                         <strong><?= htmlspecialchars($teacher['Сотрудник']) ?></strong><br>
                         <?= htmlspecialchars($teacher['Должность'] ?? '') ?><br>
-                        <?= htmlspecialchars($teacher['Ставка'] ?? '') ?>
+                        <?= htmlspecialchars($teacher['Ставка'] ?? '') ?><br>
+                        <div>МинКол = <?= htmlspecialchars($teacher['МинКол'] ?? '') ?></div>
+                        <div>МаксКол = <?= htmlspecialchars($teacher['МаксКол'] ?? '') ?></div>
                     </div>
                 </button>
-
                 <br>
-
             <?php endif; ?>
         <?php endforeach; ?>
     </div>
