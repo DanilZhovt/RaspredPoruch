@@ -19,8 +19,18 @@ class ApiClient
     {
         $url = $this->baseUrl . $endpoint;
 
+        if (isset($params['name'])) {
+            $params['name'] = str_replace(' ', '%20', $params['name']);
+        }
+
         if (!empty($params)) {
-            $url .= '?' . http_build_query($params);
+            $queryParts = [];
+
+            foreach ($params as $key => $value) {
+                $queryParts[] = $key . '=' . $value;
+            }
+
+            $url .= '?' . implode('&', $queryParts);
         }
 
         $ch = curl_init();
@@ -53,59 +63,101 @@ class ApiClient
         return $data['РасчетЧасов'] ?? [];
     }
 
-    public function getTeachers(string $department): array
+    public function getTeachers(string $department)
     {
-        $response = $this->request('/GetTeachers');
+        $response = $this->request('/GetTeachers', [
+            'name' => $department
+        ]);
+
+        if (isset($response['error'])) {
+            return [
+                'error' => $response['error']
+            ];
+        }
 
         if (empty($response['data']) || !is_array($response['data'])) {
             return [];
         }
 
-        $state = [];
+        $teachers = [];
+
+        $today = new DateTimeImmutable('today');
 
         foreach ($response['data'] as $item) {
-            $employee = trim($item['Сотрудник'] ?? '');
-            $eventType = trim($item['ВидСобытия'] ?? '');
 
-            if (mb_stripos($employee, 'ув.') !== false) {
-                unset($state[$employee]);
+            $employee = $item['Сотрудник'] ?? '';
+            $event    = $item['ВидСобытия'] ?? '';
+            $startRaw = $item['ДатаНачала'] ?? null;
+
+            /**
+             * 🔥 НОВОЕ: игнорируем помеченные на удаление документы
+             */
+            $deleted = $item['ПометкаУдаления'] ?? 'Нет';
+
+            if ($deleted === 'Да') {
                 continue;
             }
 
-            if ($eventType === ADMISION_EVENT_TYPE || $eventType === MOVING_EVENT_TYPE) {
-                $state[$employee] = [
-                    'Сотрудник' => $employee,
-                    'Подразделение' => trim($item['Подразделение'] ?? ''),
-                    'Должность' => trim($item['Должность'] ?? ''),
-                    'Ставка' => trim($item['Ставка'] ?? ''),
-                ];
+            if (empty($employee) || empty($startRaw)) {
+                continue;
+            }
+
+            try {
+                $startDate = new DateTimeImmutable($startRaw);
+            } catch (Exception $e) {
+                continue;
+            }
+
+            /**
+             * 🔥 Не применяем будущие записи
+             */
+            if ($today < $startDate) {
+                continue;
+            }
+
+            // =========================
+            // ЛОГИКА СОБЫТИЙ
+            // =========================
+
+            if ($event === 'Прием') {
+
+                if (!isset($teachers[$employee])) {
+                    $teachers[$employee] = $item;
+                }
+
+            } elseif ($event === 'Перемещение') {
+
+                $teachers[$employee] = $item;
+
+            } elseif ($event === 'Увольнение') {
+
+                if (isset($teachers[$employee])) {
+                    unset($teachers[$employee]);
+                }
             }
         }
 
-        $result = [];
+        $allowedPositions = [
+            'Преподаватель',
+            'Старший преподаватель',
+            'Доцент'
+        ];
 
-        foreach ($state as $data) {
-            if ($data['Подразделение'] !== $department) {
-                continue;
-            }
+        $result = array_filter($teachers, function ($teacher) use ($allowedPositions) {
+            return in_array(
+                $teacher['Должность'] ?? '',
+                $allowedPositions,
+                true
+            );
+        });
 
-            if (
-                !in_array(
-                    $data['Должность'],
-                    ['Преподаватель', 'Старший преподаватель', 'Доцент',],
-                    true
-                )
-            ) {
-                continue;
-            }
+        usort($result, function ($a, $b) {
+            return strcmp(
+                $a['Сотрудник'] ?? '',
+                $b['Сотрудник'] ?? ''
+            );
+        });
 
-            $result[] = [
-                'Сотрудник' => $data['Сотрудник'],
-                'Должность' => $data['Должность'],
-                'Ставка' => $data['Ставка'],
-            ];
-        }
-
-        return $result;
+        return array_values($result);
     }
 }
