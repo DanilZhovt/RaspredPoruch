@@ -2,11 +2,11 @@
 require_once dirname(__DIR__) . '/../classes/ApiClient.php';
 require_once dirname(__DIR__) . '/../config/constants.php';
 
-$number = $_GET['number'] ?? '';
-
 $api = new ApiClient(BASE_URL_API_1C);
 
-$rows = $api->getWorkloadByNumber($number);
+$rows = $api->getWorkloadByNumber($_GET['number']);
+
+$teachers = $api->getTeachers(urldecode($_GET['name']));
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -118,18 +118,21 @@ $rows = $api->getWorkloadByNumber($number);
     </div>
 
     <div class="sidebar">
-        <?php /*foreach ($rows as $row): */?><!--
-            <?php /*if (!empty($row['Сотрудники'])): */?>
-                <?php /*foreach ($row['Сотрудники'] as $t): */?>
-                    <div class="yellow">
-                        <?php /*= $t['Сотрудник'] */?><br>
-                        <?php /*= $t['Должность'] */?><br>
-                        <?php /*= $t['Ставка'] */?><br>
-                        Мин: <?php /*= $t['МинКол'] */?> / Макс: <?php /*= $t['МаксКол'] */?>
+        <?php foreach ($teachers as $teacher): ?>
+            <?php if (!empty($teacher['Сотрудник'])): ?>
+
+                <button type="button" class="teacher-btn">
+                    <div>
+                        <strong><?= htmlspecialchars($teacher['Сотрудник']) ?></strong><br>
+                        <?= htmlspecialchars($teacher['Должность'] ?? '') ?><br>
+                        <?= htmlspecialchars($teacher['Ставка'] ?? '') ?>
                     </div>
-                <?php /*endforeach; */?>
-            <?php /*endif; */?>
-        --><?php /*endforeach; */?>
+                </button>
+
+                <br>
+
+            <?php endif; ?>
+        <?php endforeach; ?>
     </div>
 </div>
 

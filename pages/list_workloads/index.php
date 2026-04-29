@@ -68,7 +68,7 @@ $data = $api->getAllWorkloads();
             <tr
                     data-kafedra="<?= htmlspecialchars($item['Кафедра'] ?? '') ?>"
                     data-year="<?= htmlspecialchars($item['УчебныйГод'] ?? '') ?>"
-                    onclick="location.href='/pages/detail_page_workload/?number=<?= urlencode($item['Номер']) ?>'"
+                    onclick="location.href='/pages/detail_page_workload/?number=<?= urlencode($item['Номер']) ?>&name=<?= urlencode($item['Кафедра']) ?>'"
                     style="cursor: pointer;"
             >
                 <td><?= htmlspecialchars($item['Номер'] ?? '') ?></td>
