@@ -121,6 +121,13 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
     </div>
 
     <div class="sidebar">
+        <input
+                type="text"
+                id="teacherSearch"
+                placeholder="Поиск преподавателя..."
+                style="width: 100%; margin-bottom: 10px;"
+        >
+
         <?php foreach ($teachers as $teacher): ?>
             <?php if (!empty($teacher['Сотрудник'])): ?>
                 <button

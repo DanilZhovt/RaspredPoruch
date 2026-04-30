@@ -72,3 +72,22 @@ teacherButtons.forEach(btn => {
 
     });
 });
+
+const searchInput = document.getElementById('teacherSearch');
+const teacherButtonsList = document.querySelectorAll('.teacher-btn');
+
+searchInput.addEventListener('input', () => {
+
+    const query = searchInput.value.trim().toLowerCase();
+
+    teacherButtonsList.forEach(btn => {
+        const name = (btn.dataset.teacher || '').toLowerCase();
+
+        if (name.includes(query)) {
+            btn.style.display = '';
+        } else {
+            btn.style.display = 'none';
+        }
+    });
+
+});
