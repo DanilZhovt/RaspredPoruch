@@ -121,3 +121,11 @@ th {
     margin-bottom: 15px;
     white-space: nowrap;
 }
+
+.teacher-btn.active {
+    background-color: #fff176;
+}
+
+.highlight {
+    background-color: #fff176;
+}

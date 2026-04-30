@@ -104,6 +104,9 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
                         data-type="<?= htmlspecialchars($row['Нагрузка'] ?? '') ?>"
                         data-period="<?= htmlspecialchars($row['ПериодКонтроля'] ?? '') ?>"
                         data-direction="<?= htmlspecialchars($row['КонтингентНагрузки'] ?? '') ?>"
+                        data-teachers='<?= json_encode(array_filter(array_map(function ($t) {
+                            return $t["Сотрудник"];
+                        }, $row["Сотрудники"] ?? []))) ?>'
                 >
                     <td><?= $i++ ?></td>
                     <td><?= htmlspecialchars($row['Дисциплина'] ?? '') ?></td>
@@ -120,7 +123,11 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
     <div class="sidebar">
         <?php foreach ($teachers as $teacher): ?>
             <?php if (!empty($teacher['Сотрудник'])): ?>
-                <button type="button" class="teacher-btn">
+                <button
+                        type="button"
+                        class="teacher-btn"
+                        data-teacher="<?= htmlspecialchars($teacher['Сотрудник']) ?>"
+                >
                     <div>
                         <strong><?= htmlspecialchars($teacher['Сотрудник']) ?></strong><br>
                         <?= htmlspecialchars($teacher['Должность'] ?? '') ?><br>
