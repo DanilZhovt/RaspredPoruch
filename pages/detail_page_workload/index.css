@@ -115,17 +115,20 @@ th {
     height: fit-content;
 }
 
-.sidebar .yellow {
-    background-color: #fff176;
-    padding: 10px;
-    margin-bottom: 15px;
-    white-space: nowrap;
-}
-
 .teacher-btn.active {
     background-color: #fff176;
 }
 
 .highlight {
     background-color: #fff176;
+}
+
+.distributed.ok {
+    background-color: #4CAF50 !important;
+    color: white;
+}
+
+.distributed.over {
+    background-color: #f44336 !important;
+    color: white;
 }

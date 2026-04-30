@@ -91,3 +91,24 @@ searchInput.addEventListener('input', () => {
     });
 
 });
+
+document.querySelectorAll('table tr[data-discipline]').forEach(row => {
+
+    const loadCell = row.children[5];        // Нагрузка (Количество)
+    const distributedCell = row.querySelector('.distributed');
+
+    if (!loadCell || !distributedCell) return;
+
+    const load = parseFloat(loadCell.textContent.replace(',', '.')) || 0;
+    const distributed = parseFloat(distributedCell.textContent.replace(',', '.')) || 0;
+
+    // Сначала очистим
+    distributedCell.classList.remove('ok', 'over');
+
+    if (distributed === load && load !== 0) {
+        distributedCell.classList.add('ok');
+    } else if (distributed > load) {
+        distributedCell.classList.add('over');
+    }
+
+});
