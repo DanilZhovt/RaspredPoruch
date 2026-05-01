@@ -100,13 +100,12 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
 
             <?php $i = 1; foreach ($rows as $row): ?>
                 <tr
+                        data-id="<?= htmlspecialchars($row['УникальныйИдентификатор']) ?>"
                         data-discipline="<?= htmlspecialchars($row['Дисциплина'] ?? '') ?>"
                         data-type="<?= htmlspecialchars($row['Нагрузка'] ?? '') ?>"
                         data-period="<?= htmlspecialchars($row['ПериодКонтроля'] ?? '') ?>"
                         data-direction="<?= htmlspecialchars($row['КонтингентНагрузки'] ?? '') ?>"
-                        data-teachers='<?= json_encode(array_filter(array_map(function ($t) {
-                            return $t["Сотрудник"];
-                        }, $row["Сотрудники"] ?? []))) ?>'
+                        data-teachers='<?= htmlspecialchars(json_encode(array_column($row["Сотрудники"], "Сотрудник"))) ?>'
                 >
                     <td><?= $i++ ?></td>
                     <td><?= htmlspecialchars($row['Дисциплина'] ?? '') ?></td>
@@ -116,9 +115,9 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
                     <td><?= htmlspecialchars($row['Количество'] ?? '') ?></td>
                     <td
                             class="distributed editable"
-                            contenteditable="true"
+                            data-base="<?= htmlspecialchars($row['Распределено'] ?? 0) ?>"
                     >
-                        <?= htmlspecialchars($row['Распределено'] ?? '') ?>
+                        <?= htmlspecialchars($row['Распределено'] ?? 0) ?>
                     </td>
                 </tr>
             <?php endforeach; ?>

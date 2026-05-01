@@ -1,68 +1,89 @@
-const disciplineFilter = document.getElementById('disciplineFilter');
-const typeFilter = document.getElementById('typeFilter');
-const periodFilter = document.getElementById('periodFilter');
-const directionFilter = document.getElementById('directionFilter');
+// =====================
+// СОСТОЯНИЕ
+// =====================
+let currentTeacher = null;
 
-const rows = document.querySelectorAll('table tr[data-discipline]');
+// rowId -> { teacherName: value, _base: number }
+const distribution = {};
 
-document.getElementById("applyFilterBtn").addEventListener("click", function () {
 
-    const d = disciplineFilter.value.toLowerCase();
-    const t = typeFilter.value.toLowerCase();
-    const p = periodFilter.value.toLowerCase();
-    const dir = directionFilter.value.toLowerCase();
+// =====================
+// ЭЛЕМЕНТЫ
+// =====================
+const rows = document.querySelectorAll('table tr[data-id]');
+const teacherButtons = document.querySelectorAll('.teacher-btn');
 
-    rows.forEach(row => {
-        const discipline = (row.dataset.discipline || '').toLowerCase();
-        const type = (row.dataset.type || '').toLowerCase();
-        const period = (row.dataset.period || '').toLowerCase();
-        const direction = (row.dataset.direction || '').toLowerCase();
 
-        const okD = !d || discipline === d;
-        const okT = !t || type === t;
-        const okP = !p || period === p;
-        const okDir = !dir || direction === dir;
+// =====================
+// ИНИЦИАЛИЗАЦИЯ ИЗ PHP/1C
+// =====================
+document.querySelectorAll('tr[data-id]').forEach(row => {
 
-        row.style.display = (okD && okT && okP && okDir) ? '' : 'none';
+    const rowId = row.dataset.id;
+    const cell = row.querySelector('.distributed');
+
+    const base = parseFloat(cell.dataset.base || 0);
+
+    if (!distribution[rowId]) {
+        distribution[rowId] = { _base: base };
+    } else {
+        distribution[rowId]._base = base;
+    }
+
+    // 👇 сотрудники из PHP (обязательно добавить data-teachers)
+    let teachers = [];
+    try {
+        teachers = JSON.parse(row.dataset.teachers || "[]");
+    } catch (e) {
+        teachers = [];
+    }
+
+    // если есть один основной преподаватель — сразу кладём его
+    teachers.forEach(t => {
+        if (!t) return;
+
+        if (distribution[rowId][t] === undefined) {
+            distribution[rowId][t] = base; // стартовое значение из 1С
+        }
     });
 });
 
-const teacherButtons = document.querySelectorAll('.teacher-btn');
-const tableRows = document.querySelectorAll('table tr[data-discipline]');
 
+// =====================
+// ВЫБОР ПРЕПОДА
+// =====================
 teacherButtons.forEach(btn => {
+
     btn.addEventListener('click', () => {
+
+        const clickedTeacher = btn.dataset.teacher?.trim();
 
         const alreadyActive = btn.classList.contains('active');
 
         teacherButtons.forEach(b => b.classList.remove('active'));
-        tableRows.forEach(row => row.classList.remove('highlight'));
+        rows.forEach(r => r.classList.remove('highlight'));
 
-        if (alreadyActive) return;
+        if (alreadyActive) {
+            currentTeacher = null;
+            disableEditing();
+            renderTable();
+            return;
+        }
 
         btn.classList.add('active');
+        currentTeacher = clickedTeacher;
 
-        const teacherName = btn.dataset.teacher.trim().toLowerCase();
+        // подсветка строк
+        rows.forEach(row => {
 
-        tableRows.forEach(row => {
-            let teachersRaw = row.dataset.teachers;
             let teachers = [];
 
             try {
-                const parsed = JSON.parse(teachersRaw);
-
-                if (Array.isArray(parsed)) {
-                    teachers = parsed;
-                } else if (typeof parsed === 'string') {
-                    teachers = [parsed];
-                }
-
-            } catch (e) {
-                console.warn("Ошибка парсинга:", teachersRaw);
-            }
+                teachers = JSON.parse(row.dataset.teachers || "[]");
+            } catch {}
 
             const match = teachers.some(t =>
-                (t || '').trim().toLowerCase() === teacherName
+                (t || '').trim() === currentTeacher
             );
 
             if (match) {
@@ -70,78 +91,178 @@ teacherButtons.forEach(btn => {
             }
         });
 
+        enableEditing();
+        renderTable();
     });
 });
 
-const searchInput = document.getElementById('teacherSearch');
-const teacherButtonsList = document.querySelectorAll('.teacher-btn');
 
-searchInput.addEventListener('input', () => {
+// =====================
+// РЕДАКТИРУЕМОСТЬ
+// =====================
+function enableEditing() {
+    document.querySelectorAll('.distributed').forEach(cell => {
+        cell.contentEditable = true;
+    });
+}
 
-    const query = searchInput.value.trim().toLowerCase();
+function disableEditing() {
+    document.querySelectorAll('.distributed').forEach(cell => {
+        cell.contentEditable = false;
+    });
+}
 
-    teacherButtonsList.forEach(btn => {
-        const name = (btn.dataset.teacher || '').toLowerCase();
 
-        if (name.includes(query)) {
-            btn.style.display = '';
-        } else {
-            btn.style.display = 'none';
+// =====================
+// РЕНДЕР
+// =====================
+function renderTable() {
+
+    document.querySelectorAll('table tr[data-id]').forEach(row => {
+
+        const rowId = row.dataset.id;
+        const cell = row.querySelector('.distributed');
+
+        const base = parseFloat(cell.dataset.base || 0);
+
+        const rowData = distribution[rowId] || {};
+
+        const sumTeachers = Object.entries(rowData)
+            .filter(([k]) => k !== '_base')
+            .reduce((acc, [, v]) => acc + (parseFloat(v) || 0), 0);
+
+        // 👇 общий режим
+        if (!currentTeacher) {
+            cell.textContent = sumTeachers;
+        }
+
+        // 👇 режим конкретного преподавателя
+        else {
+            const teacherValue = rowData[currentTeacher] || 0;
+            cell.textContent = `${teacherValue}/${sumTeachers}`;
         }
     });
 
+    updateDistributedColors();
+}
+
+
+// =====================
+// ВВОД ДАННЫХ
+// =====================
+document.querySelector('table').addEventListener('input', (e) => {
+
+    const cell = e.target;
+    if (!cell.classList.contains('distributed')) return;
+    if (!currentTeacher) return;
+
+    const row = cell.closest('tr');
+    const rowId = row.dataset.id;
+
+    const value = parseFloat(cell.textContent.replace(',', '.')) || 0;
+
+    if (!distribution[rowId]) {
+        distribution[rowId] = {};
+    }
+
+    distribution[rowId][currentTeacher] = value;
+
+    renderTable();
 });
 
 
-document.querySelectorAll('.distributed.editable').forEach(cell => {
-
-    cell.addEventListener('input', () => {
-        updateDistributedColors();
-    });
-
-    cell.addEventListener('blur', () => {
-        // убираем переносы строк (частая проблема contenteditable)
-        cell.textContent = cell.textContent.replace(/\n/g, '').trim();
-    });
+// =====================
+// ОГРАНИЧЕНИЕ ВВОДА
+// =====================
+document.querySelectorAll('.distributed').forEach(cell => {
 
     cell.addEventListener('keypress', (e) => {
         const char = String.fromCharCode(e.which);
-
         if (!/[0-9.,]/.test(char)) {
             e.preventDefault();
         }
     });
 
+    cell.addEventListener('blur', () => {
+        cell.textContent = cell.textContent.replace(/\n/g, '').trim();
+    });
 });
 
+
+// =====================
+// ЦВЕТА (OK / OVER)
+// =====================
 function updateDistributedColors() {
 
-    document.querySelectorAll('table tr[data-discipline]').forEach(row => {
+    document.querySelectorAll('table tr[data-id]').forEach(row => {
 
+        const cell = row.querySelector('.distributed');
         const loadCell = row.children[5];
-        const distributedCell = row.querySelector('.distributed');
 
-        if (!loadCell || !distributedCell) return;
+        if (!cell || !loadCell) return;
 
-        const load = parseFloat(loadCell.textContent.replace(',', '.')) || 0;
+        const load = parseFloat(loadCell.textContent || 0);
 
-        const text = distributedCell.textContent.trim();
+        const rowId = row.dataset.id;
+        const rowData = distribution[rowId] || {};
 
-        const distributed = parseFloat(text.replace(',', '.'));
+        const sumTeachers = Object.entries(rowData)
+            .filter(([k]) => k !== '_base')
+            .reduce((acc, [, v]) => acc + (parseFloat(v) || 0), 0);
 
-        distributedCell.classList.remove('ok', 'over');
+        cell.classList.remove('ok', 'over');
 
-        if (!text) return;
-
-        if (!isNaN(distributed)) {
-            if (distributed === load && load !== 0) {
-                distributedCell.classList.add('ok');
-            } else if (distributed > load) {
-                distributedCell.classList.add('over');
-            }
+        if (sumTeachers === load && load !== 0) {
+            cell.classList.add('ok');
+        } else if (sumTeachers > load) {
+            cell.classList.add('over');
         }
-
     });
 }
 
-updateDistributedColors();
+
+// =====================
+// ПОИСК ПРЕПОДОВ
+// =====================
+const searchInput = document.getElementById('teacherSearch');
+
+searchInput.addEventListener('input', () => {
+
+    const query = searchInput.value.trim().toLowerCase();
+
+    teacherButtons.forEach(btn => {
+        const name = (btn.dataset.teacher || '').toLowerCase();
+        btn.style.display = name.includes(query) ? '' : 'none';
+    });
+});
+
+document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
+
+function applyFilters() {
+    const discipline = document.getElementById('disciplineFilter').value;
+    const type = document.getElementById('typeFilter').value;
+    const period = document.getElementById('periodFilter').value;
+    const direction = document.getElementById('directionFilter').value;
+
+    document.querySelectorAll('table tr[data-id]').forEach(row => {
+
+        const rowDiscipline = row.dataset.discipline || '';
+        const rowType = row.dataset.type || '';
+        const rowPeriod = row.dataset.period || '';
+        const rowDirection = row.dataset.direction || '';
+
+        const match =
+            (!discipline || rowDiscipline === discipline) &&
+            (!type || rowType === type) &&
+            (!period || rowPeriod === period) &&
+            (!direction || rowDirection === direction);
+
+        row.style.display = match ? '' : 'none';
+    });
+}
+
+// =====================
+// СТАРТ
+// =====================
+disableEditing();
+renderTable();

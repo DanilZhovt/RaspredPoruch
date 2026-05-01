@@ -132,3 +132,14 @@ th {
     background-color: #f44336 !important;
     color: white;
 }
+
+.distributed {
+    min-width: 90px;
+    background: #fff9c4;
+    cursor: default;
+}
+
+.distributed[contenteditable="true"] {
+    background-color: #fff59d;
+    cursor: text;
+}
