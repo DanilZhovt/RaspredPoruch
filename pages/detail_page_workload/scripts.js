@@ -92,23 +92,56 @@ searchInput.addEventListener('input', () => {
 
 });
 
-document.querySelectorAll('table tr[data-discipline]').forEach(row => {
 
-    const loadCell = row.children[5];        // Нагрузка (Количество)
-    const distributedCell = row.querySelector('.distributed');
+document.querySelectorAll('.distributed.editable').forEach(cell => {
 
-    if (!loadCell || !distributedCell) return;
+    cell.addEventListener('input', () => {
+        updateDistributedColors();
+    });
 
-    const load = parseFloat(loadCell.textContent.replace(',', '.')) || 0;
-    const distributed = parseFloat(distributedCell.textContent.replace(',', '.')) || 0;
+    cell.addEventListener('blur', () => {
+        // убираем переносы строк (частая проблема contenteditable)
+        cell.textContent = cell.textContent.replace(/\n/g, '').trim();
+    });
 
-    // Сначала очистим
-    distributedCell.classList.remove('ok', 'over');
+    cell.addEventListener('keypress', (e) => {
+        const char = String.fromCharCode(e.which);
 
-    if (distributed === load && load !== 0) {
-        distributedCell.classList.add('ok');
-    } else if (distributed > load) {
-        distributedCell.classList.add('over');
-    }
+        if (!/[0-9.,]/.test(char)) {
+            e.preventDefault();
+        }
+    });
 
 });
+
+function updateDistributedColors() {
+
+    document.querySelectorAll('table tr[data-discipline]').forEach(row => {
+
+        const loadCell = row.children[5];
+        const distributedCell = row.querySelector('.distributed');
+
+        if (!loadCell || !distributedCell) return;
+
+        const load = parseFloat(loadCell.textContent.replace(',', '.')) || 0;
+
+        const text = distributedCell.textContent.trim();
+
+        const distributed = parseFloat(text.replace(',', '.'));
+
+        distributedCell.classList.remove('ok', 'over');
+
+        if (!text) return;
+
+        if (!isNaN(distributed)) {
+            if (distributed === load && load !== 0) {
+                distributedCell.classList.add('ok');
+            } else if (distributed > load) {
+                distributedCell.classList.add('over');
+            }
+        }
+
+    });
+}
+
+updateDistributedColors();

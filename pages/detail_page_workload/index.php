@@ -114,7 +114,10 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
                     <td><?= htmlspecialchars($row['ПериодКонтроля'] ?? '') ?></td>
                     <td><?= htmlspecialchars($row['КонтингентНагрузки'] ?? '') ?></td>
                     <td><?= htmlspecialchars($row['Количество'] ?? '') ?></td>
-                    <td class="distributed">
+                    <td
+                            class="distributed editable"
+                            contenteditable="true"
+                    >
                         <?= htmlspecialchars($row['Распределено'] ?? '') ?>
                     </td>
                 </tr>
