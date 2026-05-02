@@ -7,6 +7,27 @@ $api = new ApiClient(BASE_URL_API_1C);
 $rows = $api->getWorkloadByNumber($_GET['number']);
 
 $teachers = $api->getTeachers(urldecode($_GET['name']));
+
+$teacherHours = [];
+
+foreach ($rows as $row) {
+
+    if (empty($row['Сотрудники'])) continue;
+
+    foreach ($row['Сотрудники'] as $t) {
+
+        $name = trim($t['Сотрудник'] ?? '');
+        if (!$name) continue;
+
+        $hours = (float)($t['Количество'] ?? 0);
+
+        if (!isset($teacherHours[$name])) {
+            $teacherHours[$name] = 0;
+        }
+
+        $teacherHours[$name] += $hours;
+    }
+}
 ?>
 <!DOCTYPE html>
 <html lang="ru">
@@ -143,8 +164,8 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
                         <strong><?= htmlspecialchars($teacher['Сотрудник']) ?></strong><br>
                         <?= htmlspecialchars($teacher['Должность'] ?? '') ?><br>
                         <?= htmlspecialchars($teacher['Ставка'] ?? '') ?><br>
-                        <div>МинКол = <?= htmlspecialchars($teacher['МинКол'] ?? '') ?></div>
-                        <div>МаксКол = <?= htmlspecialchars($teacher['МаксКол'] ?? '') ?></div>
+                        <div>МинКол = <?= $teacherHours[$teacher['Сотрудник']] ?? 0 ?> / <?= (float)($teacher['МинКол'] ?? 0) ?></div>
+                        <div>МаксКол = <?= $teacherHours[$teacher['Сотрудник']] ?? 0 ?> / <?= (float)($teacher['МаксКол'] ?? 0) ?></div>
                     </div>
                 </button>
                 <br>
