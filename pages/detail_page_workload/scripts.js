@@ -297,6 +297,49 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
     }
 });
 
+document.addEventListener('DOMContentLoaded', () => {
+
+    document.querySelectorAll('.row-number-cell').forEach(cell => {
+
+        cell.style.cursor = 'pointer';
+
+        cell.addEventListener('click', () => {
+
+            const row = cell.closest('tr');
+
+            const teachers = getTeachersFromRow(row);
+
+            // ❗ сбрасываем только визуальные подсветки
+            teacherButtons.forEach(b => b.classList.remove('active'));
+            rows.forEach(r => r.classList.remove('highlight', 'active-row'));
+
+            // подсветка преподавателей
+            teacherButtons.forEach(btn => {
+
+                const name = (btn.dataset.teacher || '').trim();
+
+                if (teachers.includes(name)) {
+                    btn.classList.add('active');
+                }
+            });
+
+            // подсветка самой строки (если нужно)
+            row.classList.add('highlight');
+        });
+    });
+
+});
+
+function getTeachersFromRow(row) {
+    try {
+        return JSON.parse(row.dataset.teachers || "[]")
+            .map(t => (t || '').trim())
+            .filter(Boolean);
+    } catch {
+        return [];
+    }
+}
+
 // =====================
 // СТАРТ
 // =====================

@@ -128,7 +128,7 @@ foreach ($rows as $row) {
                         data-direction="<?= htmlspecialchars($row['КонтингентНагрузки'] ?? '') ?>"
                         data-teachers='<?= htmlspecialchars(json_encode(array_column($row["Сотрудники"], "Сотрудник"))) ?>'
                 >
-                    <td><?= $i++ ?></td>
+                    <td class="row-number-cell"><?= $i++ ?></td>
                     <td><?= htmlspecialchars($row['Дисциплина'] ?? '') ?></td>
                     <td><?= htmlspecialchars($row['Нагрузка'] ?? '') ?></td>
                     <td><?= htmlspecialchars($row['ПериодКонтроля'] ?? '') ?></td>
