@@ -160,4 +160,28 @@ class ApiClient
 
         return array_values($result);
     }
+
+    public function postAddEmployeeToRaspredPoruch(array $data)
+    {
+        $url = $this->baseUrl . '/PostAddEmployeeToRaspredPoruch';
+
+        $ch = curl_init($url);
+
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_HTTPAUTH, CURLAUTH_BASIC);
+        curl_setopt($ch, CURLOPT_USERPWD, "$this->username:$this->password");
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Content-Type: application/json'
+        ]);
+
+        curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data, JSON_UNESCAPED_UNICODE));
+
+        $response = curl_exec($ch);
+
+        curl_close($ch);
+
+        return json_decode($response, true);
+    }
 }

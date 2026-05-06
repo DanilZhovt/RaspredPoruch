@@ -261,6 +261,36 @@ function applyFilters() {
     });
 }
 
+document.getElementById('saveBtn').addEventListener('click', async () => {
+
+    const footer = document.querySelector('.footer');
+
+    const number = footer.dataset.number;
+    const name = footer.dataset.name;
+
+    const url = '/classes/save.php?number='
+        + encodeURIComponent(number)
+        + '&name='
+        + encodeURIComponent(name);
+
+    const payload = structuredClone(distribution);
+
+    for (const rowId in payload) {
+        delete payload[rowId]._base;
+    }
+
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const data = await res.json();
+    alert(data.status === 'ok' ? 'Сохранено' : 'Ошибка');
+});
+
 // =====================
 // СТАРТ
 // =====================

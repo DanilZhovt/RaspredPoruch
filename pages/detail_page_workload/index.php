@@ -174,8 +174,11 @@ foreach ($rows as $row) {
     </div>
 </div>
 
-<div class="footer">
-    <button>Сохранить</button>
+<div class="footer"
+     data-number="<?= htmlspecialchars($_GET['number'] ?? '') ?>"
+     data-name="<?= htmlspecialchars($_GET['name'] ?? '') ?>">
+
+    <button id="saveBtn">Сохранить</button>
     <button>Сформировать отчет</button>
 </div>
 
