@@ -273,22 +273,28 @@ document.getElementById('saveBtn').addEventListener('click', async () => {
         + '&name='
         + encodeURIComponent(name);
 
-    const payload = structuredClone(distribution);
+    // блокируем кнопку, чтобы не нажали 2 раза
+    const btn = document.getElementById('saveBtn');
+    btn.disabled = true;
+    btn.textContent = 'Сохранение...';
 
-    for (const rowId in payload) {
-        delete payload[rowId]._base;
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(distribution)
+        });
+
+        location.reload();
+
+    } catch (e) {
+        alert('Ошибка сети');
+    } finally {
+        btn.disabled = false;
+        btn.textContent = 'Сохранить';
     }
-
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-    });
-
-    const data = await res.json();
-    alert(data.status === 'ok' ? 'Сохранено' : 'Ошибка');
 });
 
 // =====================
