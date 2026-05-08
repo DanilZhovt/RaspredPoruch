@@ -19,7 +19,7 @@ $data = $api->getAllWorkloads();
 
 <div class="header">
     <label>Кафедра:
-        <select id="kafedraFilter">
+        <select id="cathedraFilter">
             <option value="">Все</option>
             <?php
             foreach (array_unique(array_column($data, 'Кафедра')) as $cathedra):
@@ -64,7 +64,7 @@ $data = $api->getAllWorkloads();
         <tbody id="table-body">
         <?php foreach ($data as $item): ?>
             <tr
-                    data-kafedra="<?= htmlspecialchars($item['Кафедра'] ?? '') ?>"
+                    data-cathedra="<?= htmlspecialchars($item['Кафедра'] ?? '') ?>"
                     data-year="<?= htmlspecialchars($item['УчебныйГод'] ?? '') ?>"
                     onclick="location.href='/pages/detail_page_workload/?number=<?= urlencode($item['Номер']) ?>&name=<?= urlencode($item['Кафедра']) ?>'"
                     style="cursor: pointer;"
