@@ -1,302 +1,340 @@
-let currentTeacher = null;
+const state = {
+    currentTeacher: null,
+    distribution: {}
+};
 
-const distribution = {};
+const selectors = {
+    rows: 'table tr[data-id]',
+    distributed: '.distributed',
+    teacherBtn: '.teacher-btn'
+};
 
+const elements = {
+    rows: [...document.querySelectorAll(selectors.rows)],
+    teacherButtons: [...document.querySelectorAll(selectors.teacherBtn)],
+    table: document.querySelector('table'),
+    searchInput: document.getElementById('teacherSearch'),
+    saveBtn: document.getElementById('saveBtn'),
+    applyFilterBtn: document.getElementById('applyFilterBtn')
+};
 
-const rows = document.querySelectorAll('table tr[data-id]');
-const teacherButtons = document.querySelectorAll('.teacher-btn');
+init();
 
+function init() {
+    initDistribution();
+    bindTeacherButtons();
+    bindTableEditing();
+    bindSearch();
+    bindFilters();
+    bindSave();
+    bindRowSelection();
 
-document.querySelectorAll('tr[data-id]').forEach(row => {
+    setEditingEnabled(false);
+    renderTable();
+}
 
-    const rowId = row.dataset.id;
-    const cell = row.querySelector('.distributed');
+function initDistribution() {
+    elements.rows.forEach(row => {
+        const rowId = row.dataset.id;
+        const cell = row.querySelector(selectors.distributed);
 
-    const base = parseFloat(cell.dataset.base || 0);
+        const base = parseNumber(cell?.dataset.base);
+        const teachers = getTeachersFromRow(row);
 
-    if (!distribution[rowId]) {
-        distribution[rowId] = { _base: base };
-    } else {
-        distribution[rowId]._base = base;
-    }
+        state.distribution[rowId] = {
+            _base: base
+        };
 
-    let teachers = [];
-    try {
-        teachers = JSON.parse(row.dataset.teachers || "[]");
-    } catch (e) {
-        teachers = [];
-    }
+        teachers.forEach(teacher => {
+            state.distribution[rowId][teacher] = base;
+        });
+    });
+}
 
-    teachers.forEach(t => {
-        if (!t) return;
+function bindTeacherButtons() {
+    elements.teacherButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            const teacher = button.dataset.teacher?.trim();
 
-        if (distribution[rowId][t] === undefined) {
-            distribution[rowId][t] = base;
+            const isActive = button.classList.contains('active');
+
+            resetTeacherSelection();
+
+            if (isActive) {
+                state.currentTeacher = null;
+                setEditingEnabled(false);
+                renderTable();
+                return;
+            }
+
+            state.currentTeacher = teacher;
+
+            button.classList.add('active');
+
+            highlightTeacherRows(teacher);
+
+            setEditingEnabled(true);
+            renderTable();
+        });
+    });
+}
+
+function resetTeacherSelection() {
+    elements.teacherButtons.forEach(btn =>
+        btn.classList.remove('active')
+    );
+
+    elements.rows.forEach(row =>
+        row.classList.remove('highlight', 'active-row')
+    );
+}
+
+function highlightTeacherRows(teacher) {
+    elements.rows.forEach(row => {
+        const teachers = getTeachersFromRow(row);
+
+        if (teachers.includes(teacher)) {
+            row.classList.add('highlight');
         }
     });
-});
+}
 
+function renderTable() {
+    elements.rows.forEach(row => {
+        const rowId = row.dataset.id;
+        const cell = row.querySelector(selectors.distributed);
 
-teacherButtons.forEach(btn => {
+        const total = getRowTotal(rowId);
 
-    btn.addEventListener('click', () => {
-
-        const clickedTeacher = btn.dataset.teacher?.trim();
-
-        const alreadyActive = btn.classList.contains('active');
-
-        teacherButtons.forEach(b => b.classList.remove('active'));
-        rows.forEach(r => r.classList.remove('highlight'));
-
-        if (alreadyActive) {
-            currentTeacher = null;
-            disableEditing();
-            renderTable();
+        if (!state.currentTeacher) {
+            cell.textContent = total;
             return;
         }
 
-        btn.classList.add('active');
-        currentTeacher = clickedTeacher;
+        const teacherValue =
+            state.distribution[rowId]?.[state.currentTeacher] || 0;
 
-        rows.forEach(row => {
-
-            let teachers = [];
-
-            try {
-                teachers = JSON.parse(row.dataset.teachers || "[]");
-            } catch {}
-
-            const match = teachers.some(t =>
-                (t || '').trim() === currentTeacher
-            );
-
-            if (match) {
-                row.classList.add('highlight');
-            }
-        });
-
-        enableEditing();
-        renderTable();
-    });
-});
-
-
-function enableEditing() {
-    document.querySelectorAll('.distributed').forEach(cell => {
-        cell.contentEditable = true;
-    });
-}
-
-function disableEditing() {
-    document.querySelectorAll('.distributed').forEach(cell => {
-        cell.contentEditable = false;
-    });
-}
-
-
-function renderTable() {
-
-    document.querySelectorAll('table tr[data-id]').forEach(row => {
-
-        const rowId = row.dataset.id;
-        const cell = row.querySelector('.distributed');
-
-        const base = parseFloat(cell.dataset.base || 0);
-
-        const rowData = distribution[rowId] || {};
-
-        const sumTeachers = Object.entries(rowData)
-            .filter(([k]) => k !== '_base')
-            .reduce((acc, [, v]) => acc + (parseFloat(v) || 0), 0);
-
-        if (!currentTeacher) {
-            cell.textContent = sumTeachers;
-        }
-
-        else {
-            const teacherValue = rowData[currentTeacher] || 0;
-            cell.textContent = `${teacherValue}/${sumTeachers}`;
-        }
+        cell.textContent = `${teacherValue}/${total}`;
     });
 
     updateDistributedColors();
 }
 
+function getRowTotal(rowId) {
+    const rowData = state.distribution[rowId] || {};
 
-document.querySelector('table').addEventListener('input', (e) => {
+    return Object.entries(rowData)
+        .filter(([key]) => key !== '_base')
+        .reduce((sum, [, value]) => {
+            return sum + parseNumber(value);
+        }, 0);
+}
 
-    const cell = e.target;
+function setEditingEnabled(enabled) {
+    document.querySelectorAll(selectors.distributed).forEach(cell => {
+        cell.contentEditable = enabled;
+    });
+}
+
+function bindTableEditing() {
+    elements.table.addEventListener('input', handleCellInput);
+
+    document
+        .querySelectorAll(selectors.distributed)
+        .forEach(cell => {
+            cell.addEventListener('keypress', validateCellInput);
+            cell.addEventListener('blur', cleanupCell);
+        });
+}
+
+function handleCellInput(event) {
+    const cell = event.target;
+
     if (!cell.classList.contains('distributed')) return;
-    if (!currentTeacher) return;
+    if (!state.currentTeacher) return;
 
     const row = cell.closest('tr');
     const rowId = row.dataset.id;
 
-    const value = parseFloat(cell.textContent.replace(',', '.')) || 0;
+    const value = parseNumber(cell.textContent);
 
-    if (!distribution[rowId]) {
-        distribution[rowId] = {};
+    if (!state.distribution[rowId]) {
+        state.distribution[rowId] = {};
     }
 
-    distribution[rowId][currentTeacher] = value;
+    state.distribution[rowId][state.currentTeacher] = value;
 
     renderTable();
-});
+}
 
+function validateCellInput(event) {
+    const char = String.fromCharCode(event.which);
 
-document.querySelectorAll('.distributed').forEach(cell => {
+    if (!/[0-9.,]/.test(char)) {
+        event.preventDefault();
+    }
+}
 
-    cell.addEventListener('keypress', (e) => {
-        const char = String.fromCharCode(e.which);
-        if (!/[0-9.,]/.test(char)) {
-            e.preventDefault();
-        }
-    });
-
-    cell.addEventListener('blur', () => {
-        cell.textContent = cell.textContent.replace(/\n/g, '').trim();
-    });
-});
+function cleanupCell(event) {
+    event.target.textContent = event.target.textContent
+        .replace(/\n/g, '')
+        .trim();
+}
 
 function updateDistributedColors() {
-
-    document.querySelectorAll('table tr[data-id]').forEach(row => {
-
-        const cell = row.querySelector('.distributed');
+    elements.rows.forEach(row => {
+        const cell = row.querySelector(selectors.distributed);
         const loadCell = row.children[5];
 
         if (!cell || !loadCell) return;
 
-        const load = parseFloat(loadCell.textContent || 0);
-
         const rowId = row.dataset.id;
-        const rowData = distribution[rowId] || {};
 
-        const sumTeachers = Object.entries(rowData)
-            .filter(([k]) => k !== '_base')
-            .reduce((acc, [, v]) => acc + (parseFloat(v) || 0), 0);
+        const load = parseNumber(loadCell.textContent);
+        const total = getRowTotal(rowId);
 
         cell.classList.remove('ok', 'over');
 
-        if (sumTeachers === load && load !== 0) {
+        if (load !== 0 && total === load) {
             cell.classList.add('ok');
-        } else if (sumTeachers > load) {
+        } else if (total > load) {
             cell.classList.add('over');
         }
     });
 }
 
-const searchInput = document.getElementById('teacherSearch');
+function bindSearch() {
+    elements.searchInput?.addEventListener('input', () => {
+        const query = elements.searchInput.value
+            .trim()
+            .toLowerCase();
 
-searchInput.addEventListener('input', () => {
+        elements.teacherButtons.forEach(button => {
+            const teacher = (
+                button.dataset.teacher || ''
+            ).toLowerCase();
 
-    const query = searchInput.value.trim().toLowerCase();
-
-    teacherButtons.forEach(btn => {
-        const name = (btn.dataset.teacher || '').toLowerCase();
-        btn.style.display = name.includes(query) ? '' : 'none';
+            button.style.display = teacher.includes(query)
+                ? ''
+                : 'none';
+        });
     });
-});
+}
 
-document.getElementById('applyFilterBtn').addEventListener('click', applyFilters);
+function bindFilters() {
+    elements.applyFilterBtn?.addEventListener(
+        'click',
+        applyFilters
+    );
+}
 
 function applyFilters() {
-    const discipline = document.getElementById('disciplineFilter').value;
-    const type = document.getElementById('typeFilter').value;
-    const period = document.getElementById('periodFilter').value;
-    const direction = document.getElementById('directionFilter').value;
+    const filters = {
+        discipline: getFilterValue('disciplineFilter'),
+        type: getFilterValue('typeFilter'),
+        period: getFilterValue('periodFilter'),
+        direction: getFilterValue('directionFilter')
+    };
 
-    document.querySelectorAll('table tr[data-id]').forEach(row => {
+    elements.rows.forEach(row => {
+        const match = Object.entries(filters).every(
+            ([key, value]) => {
+                if (!value) return true;
 
-        const rowDiscipline = row.dataset.discipline || '';
-        const rowType = row.dataset.type || '';
-        const rowPeriod = row.dataset.period || '';
-        const rowDirection = row.dataset.direction || '';
-
-        const match =
-            (!discipline || rowDiscipline === discipline) &&
-            (!type || rowType === type) &&
-            (!period || rowPeriod === period) &&
-            (!direction || rowDirection === direction);
+                return (row.dataset[key] || '') === value;
+            }
+        );
 
         row.style.display = match ? '' : 'none';
     });
 }
 
-document.getElementById('saveBtn').addEventListener('click', async () => {
+function getFilterValue(id) {
+    return document.getElementById(id)?.value || '';
+}
 
+function bindSave() {
+    elements.saveBtn?.addEventListener('click', saveDistribution);
+}
+
+async function saveDistribution() {
     const footer = document.querySelector('.footer');
 
     const number = footer.dataset.number;
     const name = footer.dataset.name;
 
-    const url = '/classes/save.php?number='
-        + encodeURIComponent(number)
-        + '&name='
-        + encodeURIComponent(name);
+    const url =
+        '/classes/save.php?number=' +
+        encodeURIComponent(number) +
+        '&name=' +
+        encodeURIComponent(name);
 
-    const btn = document.getElementById('saveBtn');
-    btn.disabled = true;
-    btn.textContent = 'Сохранение...';
+    const button = elements.saveBtn;
+
+    button.disabled = true;
+    button.textContent = 'Сохранение...';
 
     try {
-        const res = await fetch(url, {
+        await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
-            body: JSON.stringify(distribution)
+            body: JSON.stringify(state.distribution)
         });
 
         location.reload();
 
-    } catch (e) {
+    } catch {
         alert('Ошибка сети');
+
     } finally {
-        btn.disabled = false;
-        btn.textContent = 'Сохранить';
+        button.disabled = false;
+        button.textContent = 'Сохранить';
     }
-});
+}
 
-document.addEventListener('DOMContentLoaded', () => {
+function bindRowSelection() {
+    document
+        .querySelectorAll('.row-number-cell')
+        .forEach(cell => {
+            cell.style.cursor = 'pointer';
 
-    document.querySelectorAll('.row-number-cell').forEach(cell => {
+            cell.addEventListener('click', () => {
+                const row = cell.closest('tr');
 
-        cell.style.cursor = 'pointer';
+                const teachers = getTeachersFromRow(row);
 
-        cell.addEventListener('click', () => {
+                resetTeacherSelection();
 
-            const row = cell.closest('tr');
+                elements.teacherButtons.forEach(button => {
+                    const teacher = (
+                        button.dataset.teacher || ''
+                    ).trim();
 
-            const teachers = getTeachersFromRow(row);
+                    if (teachers.includes(teacher)) {
+                        button.classList.add('active');
+                    }
+                });
 
-            teacherButtons.forEach(b => b.classList.remove('active'));
-            rows.forEach(r => r.classList.remove('highlight', 'active-row'));
-
-            teacherButtons.forEach(btn => {
-
-                const name = (btn.dataset.teacher || '').trim();
-
-                if (teachers.includes(name)) {
-                    btn.classList.add('active');
-                }
+                row.classList.add('highlight');
             });
-
-            row.classList.add('highlight');
         });
-    });
-
-});
+}
 
 function getTeachersFromRow(row) {
     try {
-        return JSON.parse(row.dataset.teachers || "[]")
-            .map(t => (t || '').trim())
+        return JSON.parse(row.dataset.teachers || '[]')
+            .map(teacher => (teacher || '').trim())
             .filter(Boolean);
+
     } catch {
         return [];
     }
 }
 
-disableEditing();
-renderTable();
+function parseNumber(value) {
+    return parseFloat(
+        String(value || '0').replace(',', '.')
+    ) || 0;
+}
