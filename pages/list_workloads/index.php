@@ -22,12 +22,11 @@ $data = $api->getAllWorkloads();
         <select id="kafedraFilter">
             <option value="">Все</option>
             <?php
-            $kafedras = array_unique(array_column($data, 'Кафедра'));
-            foreach ($kafedras as $k):
-                if (!$k) continue;
+            foreach (array_unique(array_column($data, 'Кафедра')) as $cathedra):
+                if (!$cathedra) continue;
                 ?>
-                <option value="<?= htmlspecialchars($k) ?>">
-                    <?= htmlspecialchars($k) ?>
+                <option value="<?= htmlspecialchars($cathedra) ?>">
+                    <?= htmlspecialchars($cathedra) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -37,12 +36,11 @@ $data = $api->getAllWorkloads();
         <select id="yearFilter">
             <option value="">Все</option>
             <?php
-            $years = array_unique(array_column($data, 'УчебныйГод'));
-            foreach ($years as $y):
-                if (!$y) continue;
+            foreach (array_unique(array_column($data, 'УчебныйГод')) as $year):
+                if (!$year) continue;
                 ?>
-                <option value="<?= htmlspecialchars($y) ?>">
-                    <?= htmlspecialchars($y) ?>
+                <option value="<?= htmlspecialchars($year) ?>">
+                    <?= htmlspecialchars($year) ?>
                 </option>
             <?php endforeach; ?>
         </select>

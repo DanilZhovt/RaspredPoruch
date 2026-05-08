@@ -11,9 +11,6 @@ $teachers = $api->getTeachers(urldecode($_GET['name']));
 $reportBuilder = new TeacherWorkloadReport($rows, $teachers);
 
 $data = $reportBuilder->build();
-
-$lessonTypes = $data['lessonTypes'];
-$report = $data['report'];
 ?>
 
 <!DOCTYPE html>
@@ -36,7 +33,7 @@ $report = $data['report'];
         <th>Должность</th>
 
         <?php
-        foreach ($lessonTypes as $type): ?>
+        foreach ($data['lessonTypes'] as $type): ?>
             <th><?= htmlspecialchars($type) ?></th>
         <?php
         endforeach; ?>
@@ -45,14 +42,12 @@ $report = $data['report'];
     </tr>
 
     <?php
-    $i = 1; ?>
-
-    <?php
-    foreach ($report as $teacher): ?>
+    $lineNumber = 1;
+    foreach ($data['report'] as $teacher): ?>
 
         <tr>
 
-            <td><?= $i++ ?></td>
+            <td><?= $lineNumber++ ?></td>
 
             <td class="name">
                 <?= htmlspecialchars($teacher['ФИО']) ?>
@@ -67,7 +62,7 @@ $report = $data['report'];
             </td>
 
             <?php
-            foreach ($lessonTypes as $type): ?>
+            foreach ($data['lessonTypes'] as $type): ?>
 
                 <td>
                     <?= $teacher[$type] ?: '' ?>

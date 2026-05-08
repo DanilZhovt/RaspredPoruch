@@ -4,9 +4,9 @@ require_once dirname(__DIR__) . '/config/constants.php';
 
 class ApiClient
 {
-    private $baseUrl;
-    private $username;
-    private $password;
+    private string $baseUrl;
+    private string $username;
+    private string $password;
 
     public function __construct($baseUrl)
     {
@@ -15,7 +15,12 @@ class ApiClient
         $this->password = PASSWORD_API_1C;
     }
 
-    private function request($endpoint, $params = [])
+    /**
+     * @param string $endpoint
+     * @param array $params
+     * @return array|mixed
+     */
+    private function request(string $endpoint, array $params = []): mixed
     {
         $url = $this->baseUrl . $endpoint;
 
@@ -52,18 +57,30 @@ class ApiClient
         return json_decode($response, true);
     }
 
-    public function getAllWorkloads()
+    /**
+     * @return array|mixed
+     */
+    public function getAllWorkloads(): mixed
     {
         return $this->request('/GetRaspredPoruch');
     }
 
-    public function getWorkloadByNumber($number)
+    /**
+     * @param string $number
+     * @return array|mixed
+     */
+    public function getWorkloadByNumber(string $number): mixed
     {
         $data = $this->request('/GetRaspredPoruchByNum', ['number' => $number]);
         return $data['РасчетЧасов'] ?? [];
     }
 
-    public function getTeachers(string $department)
+    /**
+     * @param string $department
+     * @return array
+     * @throws DateMalformedStringException
+     */
+    public function getTeachers(string $department): array
     {
         $response = $this->request('/GetTeachers', [
             'name' => $department
@@ -81,17 +98,13 @@ class ApiClient
 
         $teachers = [];
 
-        $today = new DateTimeImmutable('today');
-
         foreach ($response['data'] as $item) {
 
             $employee = $item['Сотрудник'] ?? '';
-            $event    = $item['ВидСобытия'] ?? '';
+            $event = $item['ВидСобытия'] ?? '';
             $startRaw = $item['ДатаНачала'] ?? null;
 
-            $deleted = $item['ПометкаУдаления'] ?? 'Нет';
-
-            if ($deleted === 'Да') {
+            if (($item['ПометкаУдаления'] ?? 'Нет') === 'Да') {
                 continue;
             }
 
@@ -99,13 +112,7 @@ class ApiClient
                 continue;
             }
 
-            try {
-                $startDate = new DateTimeImmutable($startRaw);
-            } catch (Exception $e) {
-                continue;
-            }
-
-            if ($today < $startDate) {
+            if ((new DateTimeImmutable('today')) < (new DateTimeImmutable($startRaw))) {
                 continue;
             }
 
@@ -153,9 +160,7 @@ class ApiClient
 
     public function postAddEmployeeToRaspredPoruch(array $data)
     {
-        $url = $this->baseUrl . '/PostAddEmployeeToRaspredPoruch';
-
-        $ch = curl_init($url);
+        $ch = curl_init($this->baseUrl . '/PostAddEmployeeToRaspredPoruch');
 
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_POST, true);

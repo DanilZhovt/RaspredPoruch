@@ -5,9 +5,9 @@ require_once dirname(__DIR__) . '/config/constants.php';
 
 $api = new ApiClient(BASE_URL_API_1C);
 
-$input = json_decode(file_get_contents('php://input'), true);
+$newData = json_decode(file_get_contents('php://input'), true);
 
-if (!$input) {
+if (!$newData) {
     echo json_encode(['status' => 'error', 'message' => 'empty input']);
     exit;
 }
@@ -19,29 +19,29 @@ if (!$number) {
     exit;
 }
 
-$rows = $api->getWorkloadByNumber($number);
+$oldData = $api->getWorkloadByNumber($number);
 
 $normalizedRows = [];
 
-foreach ($rows as $row) {
-    $rowId = $row['УникальныйИдентификатор'] ?? null;
+foreach ($oldData as $rowOldData) {
+    $rowId = $rowOldData['УникальныйИдентификатор'] ?? null;
     if (!$rowId) {
         continue;
     }
 
     $normalizedRows[$rowId] = [];
 
-    if (empty($row['Сотрудники'])) {
+    if (empty($rowOldData['Сотрудники'])) {
         continue;
     }
 
-    foreach ($row['Сотрудники'] as $t) {
-        $name = trim($t['Сотрудник'] ?? '');
+    foreach ($rowOldData['Сотрудники'] as $teacher) {
+        $name = trim($teacher['Сотрудник'] ?? '');
         if (!$name) {
             continue;
         }
 
-        $normalizedRows[$rowId][$name] = (float)($t['Количество'] ?? 0);
+        $normalizedRows[$rowId][$name] = (float)($teacher['Количество'] ?? 0);
     }
 }
 
@@ -58,7 +58,7 @@ foreach ($teachers as $t) {
 
 $payload = [];
 
-foreach ($input as $rowId => $teachers) {
+foreach ($newData as $rowId => $teachers) {
 
     $oldTeachers = $normalizedRows[$rowId] ?? [];
     $meta = $rowsById[$rowId] ?? [];

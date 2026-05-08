@@ -4,13 +4,13 @@ require_once dirname(__DIR__) . '/../config/constants.php';
 
 $api = new ApiClient(BASE_URL_API_1C);
 
-$rows = $api->getWorkloadByNumber($_GET['number']);
+$tableRows = $api->getWorkloadByNumber($_GET['number']);
 
 $teachers = $api->getTeachers(urldecode($_GET['name']));
 
 $teacherHours = [];
 
-foreach ($rows as $row) {
+foreach ($tableRows as $row) {
 
     if (empty($row['Сотрудники'])) continue;
 
@@ -44,12 +44,11 @@ foreach ($rows as $row) {
         <select id="disciplineFilter">
             <option value="">Все</option>
             <?php
-            $disciplines = array_unique(array_column($rows, 'Дисциплина'));
-            foreach ($disciplines as $d):
-                if (!$d) continue;
+            foreach (array_unique(array_column($tableRows, 'Дисциплина')) as $discipline):
+                if (!$discipline) continue;
                 ?>
-                <option value="<?= htmlspecialchars($d) ?>">
-                    <?= htmlspecialchars($d) ?>
+                <option value="<?= htmlspecialchars($discipline) ?>">
+                    <?= htmlspecialchars($discipline) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -59,12 +58,11 @@ foreach ($rows as $row) {
         <select id="typeFilter">
             <option value="">Все</option>
             <?php
-            $types = array_unique(array_column($rows, 'Нагрузка'));
-            foreach ($types as $t):
-                if (!$t) continue;
+            foreach (array_unique(array_column($tableRows, 'Нагрузка')) as $type):
+                if (!$type) continue;
                 ?>
-                <option value="<?= htmlspecialchars($t) ?>">
-                    <?= htmlspecialchars($t) ?>
+                <option value="<?= htmlspecialchars($type) ?>">
+                    <?= htmlspecialchars($type) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -74,12 +72,11 @@ foreach ($rows as $row) {
         <select id="periodFilter">
             <option value="">Все</option>
             <?php
-            $periods = array_unique(array_column($rows, 'ПериодКонтроля'));
-            foreach ($periods as $p):
-                if (!$p) continue;
+            foreach (array_unique(array_column($tableRows, 'ПериодКонтроля')) as $period):
+                if (!$period) continue;
                 ?>
-                <option value="<?= htmlspecialchars($p) ?>">
-                    <?= htmlspecialchars($p) ?>
+                <option value="<?= htmlspecialchars($period) ?>">
+                    <?= htmlspecialchars($period) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -89,12 +86,11 @@ foreach ($rows as $row) {
         <select id="directionFilter">
             <option value="">Все</option>
             <?php
-            $dirs = array_unique(array_column($rows, 'КонтингентНагрузки'));
-            foreach ($dirs as $d):
-                if (!$d) continue;
+            foreach (array_unique(array_column($tableRows, 'КонтингентНагрузки')) as $dir):
+                if (!$dir) continue;
                 ?>
-                <option value="<?= htmlspecialchars($d) ?>">
-                    <?= htmlspecialchars($d) ?>
+                <option value="<?= htmlspecialchars($dir) ?>">
+                    <?= htmlspecialchars($dir) ?>
                 </option>
             <?php endforeach; ?>
         </select>
@@ -119,7 +115,9 @@ foreach ($rows as $row) {
                 <th>Распределено</th>
             </tr>
 
-            <?php $i = 1; foreach ($rows as $row): ?>
+            <?php
+            $lineNumber = 1;
+            foreach ($tableRows as $row): ?>
                 <tr
                         data-id="<?= htmlspecialchars($row['УникальныйИдентификатор']) ?>"
                         data-discipline="<?= htmlspecialchars($row['Дисциплина'] ?? '') ?>"
@@ -128,7 +126,7 @@ foreach ($rows as $row) {
                         data-direction="<?= htmlspecialchars($row['КонтингентНагрузки'] ?? '') ?>"
                         data-teachers='<?= htmlspecialchars(json_encode(array_column($row["Сотрудники"], "Сотрудник"))) ?>'
                 >
-                    <td class="row-number-cell"><?= $i++ ?></td>
+                    <td class="row-number-cell"><?= $lineNumber++ ?></td>
                     <td><?= htmlspecialchars($row['Дисциплина'] ?? '') ?></td>
                     <td><?= htmlspecialchars($row['Нагрузка'] ?? '') ?></td>
                     <td><?= htmlspecialchars($row['ПериодКонтроля'] ?? '') ?></td>
