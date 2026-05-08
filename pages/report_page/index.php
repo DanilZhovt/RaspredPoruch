@@ -82,5 +82,22 @@ $data = $reportBuilder->build();
 
 </table>
 
+<div class="footer">
+
+    <a
+            class="btn-link"
+            href="/pages/detail_page_workload/?number=<?= urlencode($_GET['number']) ?>&name=<?= urlencode($_GET['name']) ?>"
+    >
+        К расчетам
+    </a>
+
+    <a
+            class="btn-link"
+            href="/pages/list_workloads"
+    >
+        К списку нагрузок
+    </a>
+
+</div>
 </body>
 </html>

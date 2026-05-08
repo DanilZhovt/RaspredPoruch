@@ -4,8 +4,6 @@
     --text: #1f2937;
     --muted: #6b7280;
 
-    --primary: #2563eb;
-
     --border: #e5e7eb;
     --shadow: 0 4px 12px rgba(0,0,0,0.08);
     --radius: 12px;
@@ -17,11 +15,16 @@
 
 body {
     margin: 0;
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+    padding: 20px;
+
+    font-family: system-ui, sans-serif;
     background: var(--bg);
     color: var(--text);
-    font-size: 14px;
-    padding: 20px;
+
+    min-height: 100vh;
+
+    display: flex;
+    flex-direction: column;
 }
 
 h2 {
@@ -33,10 +36,16 @@ h2 {
 table {
     width: 100%;
     border-collapse: collapse;
+
     background: var(--card);
     border-radius: var(--radius);
     overflow: hidden;
+
     box-shadow: var(--shadow);
+
+    font-size: 14px;
+
+    margin-bottom: 24px;
 }
 
 th {
@@ -77,4 +86,51 @@ thead th {
 
 table tr:last-child td {
     border-bottom: none;
+}
+
+.footer {
+    position: sticky;
+    bottom: 0;
+
+    background: white;
+    box-shadow: 0 -4px 12px rgba(0,0,0,0.08);
+
+    padding: 14px;
+    text-align: center;
+
+    margin-top: auto;
+}
+
+.btn-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 180px;
+    height: 42px;
+
+    border-radius: 10px;
+
+    padding: 0 18px;
+    margin: 0 6px;
+
+    background: #e5e7eb;
+    color: #1f2937;
+
+    font-weight: 600;
+    font-size: 14px;
+
+    text-decoration: none;
+
+    transition: 0.2s;
+}
+
+.btn-link:hover {
+    background: #d1d5db;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
 }
