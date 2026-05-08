@@ -28,6 +28,7 @@ function init() {
     bindFilters();
     bindSave();
     bindRowSelection();
+    bindHeaderToggle();
 
     setEditingEnabled(false);
     renderTable();
@@ -337,4 +338,21 @@ function parseNumber(value) {
     return parseFloat(
         String(value || '0').replace(',', '.')
     ) || 0;
+}
+
+function bindHeaderToggle() {
+    const button = document.getElementById('toggleHeaderBtn');
+
+    if (!button) return;
+
+    button.addEventListener('click', () => {
+        document.body.classList.toggle('header-hidden');
+
+        const hidden =
+            document.body.classList.contains('header-hidden');
+
+        button.textContent = hidden
+            ? 'Показать фильтры'
+            : 'Скрыть фильтры';
+    });
 }
