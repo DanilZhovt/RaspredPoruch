@@ -177,7 +177,18 @@ foreach ($tableRows as $row) {
      data-name="<?= htmlspecialchars($_GET['name'] ?? '') ?>">
 
     <button id="saveBtn">Сохранить</button>
-    <button>Сформировать отчет</button>
+    <a
+            class="btn-link"
+            href="/pages/report_page/?number=<?= urlencode($_GET['number']) ?>&name=<?= urlencode($_GET['name']) ?>"
+    >
+        Сформировать отчет
+    </a>
+    <a
+            class="btn-link"
+            href="/pages/list_workloads"
+    >
+        К списку нагрузок
+    </a>
 </div>
 
 <script src="scripts.js"></script>
