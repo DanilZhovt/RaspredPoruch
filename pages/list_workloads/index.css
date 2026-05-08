@@ -25,10 +25,9 @@ body {
 }
 
 .header {
-    position: fixed;
+    position: sticky;
     top: 0;
-    left: 0;
-    right: 0;
+    z-index: 1000;
 
     background: var(--card);
     box-shadow: var(--shadow);
@@ -38,8 +37,6 @@ body {
     flex-wrap: wrap;
     gap: 14px;
     align-items: flex-end;
-
-    z-index: 1000;
 }
 
 .header label {
@@ -83,7 +80,7 @@ body {
 
 .main-content {
     width: 95%;
-    margin: 110px auto 40px;
+    margin: 20px auto 40px;
 
     background: var(--card);
     border-radius: var(--radius);
