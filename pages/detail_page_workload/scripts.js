@@ -145,7 +145,24 @@ function bindTableEditing() {
         .forEach(cell => {
             cell.addEventListener('keypress', validateCellInput);
             cell.addEventListener('blur', cleanupCell);
+
+            cell.addEventListener('focus', selectCellText);
         });
+}
+
+function selectCellText(event) {
+    const cell = event.target;
+
+    setTimeout(() => {
+        const range = document.createRange();
+
+        range.selectNodeContents(cell);
+
+        const selection = window.getSelection();
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+    }, 0);
 }
 
 function handleCellInput(event) {
@@ -157,7 +174,22 @@ function handleCellInput(event) {
     const row = cell.closest('tr');
     const rowId = row.dataset.id;
 
-    const value = parseNumber(cell.textContent);
+    let raw = cell.textContent
+        .replace(',', '.')
+        .replace(/[^\d.]/g, '');
+
+    // защита от нескольких точек
+    const parts = raw.split('.');
+
+    if (parts.length > 2) {
+        raw = parts[0] + '.' + parts.slice(1).join('');
+    }
+
+    cell.textContent = raw;
+
+    moveCaretToEnd(cell);
+
+    const value = parseNumber(raw);
 
     if (!state.distribution[rowId]) {
         state.distribution[rowId] = {};
@@ -165,7 +197,18 @@ function handleCellInput(event) {
 
     state.distribution[rowId][state.currentTeacher] = value;
 
-    renderTable();
+    updateDistributedColors();
+}
+
+function moveCaretToEnd(element) {
+    const range = document.createRange();
+    const selection = window.getSelection();
+
+    range.selectNodeContents(element);
+    range.collapse(false);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
 }
 
 function validateCellInput(event) {
