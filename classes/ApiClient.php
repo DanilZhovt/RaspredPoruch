@@ -11,8 +11,13 @@ class ApiClient
     public function __construct($baseUrl)
     {
         $this->baseUrl = $baseUrl;
-        $this->username = USERNAME_API_1C;
-        $this->password = PASSWORD_API_1C;
+
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $this->username = $_SESSION['1c_username'] ?? USERNAME_API_1C;
+        $this->password = $_SESSION['1c_password'] ?? PASSWORD_API_1C;
     }
 
     /**

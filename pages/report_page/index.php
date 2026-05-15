@@ -1,4 +1,11 @@
 <?php
+session_start();
+
+if (!isset($_SESSION['1c_username']) || !isset($_SESSION['1c_password'])) {
+    header('Location: /');
+    exit;
+}
+
 require_once dirname(__DIR__) . '/../classes/ApiClient.php';
 require_once dirname(__DIR__) . '/../config/constants.php';
 require_once 'TeacherWorkloadReport.php';
