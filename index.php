@@ -5,18 +5,20 @@ if (isset($_SESSION['1c_username']) && isset($_SESSION['1c_password'])) {
     header('Location: /pages/list_workloads/');
 }
 
+require_once dirname(__DIR__) . '/my-module.local/classes/ApiClient.php';
+require_once dirname(__DIR__) . '/my-module.local/config/constants.php';
+
+$api = new ApiClient(BASE_URL_API_1C);
+
 $error = '';
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $username = $_POST['username'] ?? '';
-    $password = $_POST['password'] ?? '';
-
-    if (empty($username) || empty($password)) {
-        $error = 'Пожалуйста, заполните все поля';
-    } else {
+    if ($api->validateCredentials(BASE_URL_API_1C, $_POST['username'], $_POST['password'])) {
         $_SESSION['1c_username'] = $username;
         $_SESSION['1c_password'] = $password;
 
         header('Location: /pages/list_workloads/');
+    } else {
+        $error = 'Неверный логин или пароль. Проверьте правильность ввода.';
     }
 }
 ?>

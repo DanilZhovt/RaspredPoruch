@@ -16,8 +16,8 @@ class ApiClient
             session_start();
         }
 
-        $this->username = $_SESSION['1c_username'] ?? USERNAME_API_1C;
-        $this->password = $_SESSION['1c_password'] ?? PASSWORD_API_1C;
+        $this->username = $_SESSION['1c_username'] ?? '';
+        $this->password = $_SESSION['1c_password'] ?? '';
     }
 
     /**
@@ -51,15 +51,47 @@ class ApiClient
         curl_setopt($ch, CURLOPT_USERPWD, "$this->username:$this->password");
 
         $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         $error = curl_error($ch);
 
         curl_close($ch);
 
         if ($error) {
-            return ['error' => $error];
+            return ['error' => $error, 'http_code' => $httpCode];
+        }
+
+        if ($httpCode >= 400) {
+            return [
+                'error' => "HTTP Error: {$httpCode}",
+                'http_code' => $httpCode,
+                'response' => json_decode($response, true)
+            ];
         }
 
         return json_decode($response, true);
+    }
+
+    /**
+     * @param string $baseUrl
+     * @param string $username
+     * @param string $password
+     * @return bool
+     */
+    public static function validateCredentials(string $baseUrl, string $username, string $password): bool
+    {
+        $client = new self($baseUrl, $username, $password);
+
+        $response = $client->getAllWorkloads();
+
+        if (!isset($response['error']) && !isset($response['http_code'])) {
+            return true;
+        }
+
+        if (isset($response['http_code']) && $response['http_code'] === 401) {
+            return false;
+        }
+
+        return !isset($response['error']);
     }
 
     /**
