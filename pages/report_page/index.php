@@ -13,7 +13,18 @@ require_once 'TeacherWorkloadReport.php';
 $api = new ApiClient(BASE_URL_API_1C);
 
 $rows = $api->getWorkloadByNumber($_GET['number']);
+
+if (ApiClient::isConnectionError($rows)) {
+    header('Location: /pages/connection_error/');
+    exit;
+}
+
 $teachers = $api->getTeachers(urldecode($_GET['name']));
+
+if (ApiClient::isConnectionError($teachers)) {
+    header('Location: /pages/connection_error/');
+    exit;
+}
 
 $reportBuilder = new TeacherWorkloadReport($rows, $teachers);
 

@@ -13,7 +13,17 @@ $api = new ApiClient(BASE_URL_API_1C);
 
 $tableRows = $api->getWorkloadByNumber($_GET['number']);
 
+if (ApiClient::isConnectionError($tableRows)) {
+    header('Location: /pages/connection_error/');
+    exit;
+}
+
 $teachers = $api->getTeachers(urldecode($_GET['name']));
+
+if (ApiClient::isConnectionError($teachers)) {
+    header('Location: /pages/connection_error/');
+    exit;
+}
 
 $teacherHours = [];
 

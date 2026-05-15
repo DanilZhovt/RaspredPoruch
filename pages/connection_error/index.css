@@ -1,0 +1,107 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.error-container {
+    background: white;
+    padding: 50px 40px;
+    border-radius: 15px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+.error-icon {
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 30px;
+    background: #fff3cd;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.error-icon svg {
+    width: 40px;
+    height: 40px;
+    color: #ff9800;
+}
+
+.error-title {
+    color: #333;
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 15px;
+}
+
+.error-message {
+    color: #666;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+}
+
+.error-details {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    padding: 15px;
+    margin-bottom: 25px;
+    text-align: left;
+    font-size: 14px;
+    color: #666;
+}
+
+.error-details strong {
+    color: #333;
+    display: block;
+    margin-bottom: 5px;
+}
+
+.button-group {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 25px;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: 500;
+    text-decoration: none;
+    cursor: pointer;
+    border: none;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+}
+
+.timer {
+    color: #999;
+    font-size: 14px;
+    margin-top: 20px;
+}

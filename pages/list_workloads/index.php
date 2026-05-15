@@ -11,6 +11,12 @@ require_once dirname(__DIR__) . '/../config/constants.php';
 
 $api = new ApiClient(BASE_URL_API_1C);
 $data = $api->getAllWorkloads();
+
+if (ApiClient::isConnectionError($data)) {
+    $returnUrl = urlencode($_SERVER['REQUEST_URI']);
+    header('Location: /pages/connection_error/?return={$returnUrl}"');
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
