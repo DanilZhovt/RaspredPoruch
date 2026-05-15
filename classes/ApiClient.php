@@ -8,7 +8,7 @@ class ApiClient
     private string $username;
     private string $password;
 
-    public function __construct($baseUrl)
+    public function __construct($baseUrl, $username = null, $password = null)
     {
         $this->baseUrl = $baseUrl;
 
@@ -16,8 +16,13 @@ class ApiClient
             session_start();
         }
 
-        $this->username = $_SESSION['1c_username'] ?? '';
-        $this->password = $_SESSION['1c_password'] ?? '';
+        if ($username !== null && $password !== null) {
+            $this->username = $username;
+            $this->password = $password;
+        } else {
+            $this->username = $_SESSION['1c_username'] ?? '';
+            $this->password = $_SESSION['1c_password'] ?? '';
+        }
     }
 
     /**
