@@ -96,11 +96,20 @@ class ApiClient
         }
 
         if ($httpCode >= 400) {
-            return [
+            // Сохраняем сырой ответ как строку для анализа
+            $errorData = [
                 'error' => "HTTP Error: {$httpCode}",
                 'http_code' => $httpCode,
-                'response' => json_decode($response, true)
+                'response' => $response  // Сохраняем как строку, не декодируем
             ];
+
+            // Пробуем декодировать JSON для дополнительной информации
+            $decodedResponse = json_decode($response, true);
+            if ($decodedResponse !== null) {
+                $errorData['response_decoded'] = $decodedResponse;
+            }
+
+            return $errorData;
         }
 
         $decodedResponse = json_decode($response, true);
@@ -170,15 +179,75 @@ class ApiClient
      * @param string $number
      * @return array|mixed
      */
+    /**
+     * @param string $number
+     * @return array|mixed
+     */
     public function getWorkloadByNumber(string $number): mixed
     {
         $data = $this->request('/GetRaspredPoruchByNum', ['number' => $number]);
 
         if (isset($data['error'])) {
-            return $data;
+            if (isset($data['response']) && is_string($data['response'])) {
+                $responseText = $data['response'];
+
+                if (str_contains($responseText, 'Элемент не выбран') ||
+                    str_contains($responseText, 'ПолучитьОбъект')) {
+                    return [
+                        'error' => true,
+                        'message' => 'Документ с номером ' . $number . ' не найден',
+                        'not_found' => true
+                    ];
+                }
+
+                if (str_contains($responseText, 'Ошибка')) {
+                    preg_match('/Ошибка.*:(.*)/i', $responseText, $matches);
+                    $errorDescription = $matches[1] ?? $responseText;
+
+                    return [
+                        'error' => true,
+                        'message' => 'Ошибка 1С: ' . trim($errorDescription),
+                        'details' => $responseText
+                    ];
+                }
+            }
+
+            if (isset($data['response_decoded']) && is_array($data['response_decoded'])) {
+                $decodedError = $data['response_decoded'];
+
+                if (isset($decodedError['error'])) {
+                    return [
+                        'error' => true,
+                        'message' => $decodedError['error'],
+                        'details' => $decodedError
+                    ];
+                }
+
+                if (isset($decodedError['message'])) {
+                    return [
+                        'error' => true,
+                        'message' => $decodedError['message'],
+                        'details' => $decodedError
+                    ];
+                }
+            }
+
+            return [
+                'error' => true,
+                'message' => $data['error'] ?? 'Неизвестная ошибка сервера',
+                'details' => $data
+            ];
         }
 
-        return $data['РасчетЧасов'] ?? [];
+        if (!isset($data['РасчетЧасов'])) {
+            return [
+                'error' => true,
+                'message' => 'Некорректный формат ответа от сервера',
+                'not_found' => true
+            ];
+        }
+
+        return $data['РасчетЧасов'];
     }
 
     /**
