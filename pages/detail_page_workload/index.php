@@ -168,7 +168,16 @@ if (isset($tableRows['error']) && $tableRows['error'] === true) {
 
                 <?php
                 $lineNumber = 1;
-                foreach ($tableRows as $row): ?>
+                foreach ($tableRows as $row): $teachersData = [];
+                    if (!empty($row['Сотрудники'])) {
+                        foreach ($row['Сотрудники'] as $t) {
+                            $teachersData[] = [
+                                'name' => trim($t['Сотрудник'] ?? ''),
+                                'hours' => (float)($t['Количество'] ?? 0)
+                            ];
+                        }
+                    }
+                    ?>
                     <tr
                             data-id="<?= htmlspecialchars($row['УникальныйИдентификатор']) ?>"
                             data-discipline="<?= htmlspecialchars($row['Дисциплина'] ?? '') ?>"
@@ -176,6 +185,7 @@ if (isset($tableRows['error']) && $tableRows['error'] === true) {
                             data-period="<?= htmlspecialchars($row['ПериодКонтроля'] ?? '') ?>"
                             data-direction="<?= htmlspecialchars($row['КонтингентНагрузки'] ?? '') ?>"
                             data-teachers='<?= htmlspecialchars(json_encode(array_column($row["Сотрудники"] ?? [], "Сотрудник"))) ?>'
+                            data-teachers-hours='<?= htmlspecialchars(json_encode($teachersData)) ?>'
                     >
                         <td class="row-number-cell"><?= $lineNumber++ ?></td>
                         <td><?= htmlspecialchars($row['Дисциплина'] ?? '') ?></td>

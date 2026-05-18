@@ -39,17 +39,38 @@ function initDistribution() {
         const rowId = row.dataset.id;
         const cell = row.querySelector(selectors.distributed);
 
-        const base = parseNumber(cell?.dataset.base);
-        const teachers = getTeachersFromRow(row);
+        if (!state.distribution[rowId]) {
+            state.distribution[rowId] = {};
+        }
 
-        state.distribution[rowId] = {
-            _base: base
-        };
+        const teachersData = getTeachersDataFromRow(row);
 
-        teachers.forEach(teacher => {
-            state.distribution[rowId][teacher] = base;
-        });
+        if (teachersData.length > 0) {
+            teachersData.forEach(teacherData => {
+                state.distribution[rowId][teacherData.name] = teacherData.hours;
+            });
+        } else {
+            const base = parseNumber(cell?.dataset.base);
+            state.distribution[rowId]._base = base;
+
+            const teachers = getTeachersFromRow(row);
+            teachers.forEach(teacher => {
+                state.distribution[rowId][teacher] = base;
+            });
+        }
     });
+}
+
+function getTeachersDataFromRow(row) {
+    try {
+        const data = JSON.parse(row.dataset.teachersHours || '[]');
+        return data.map(item => ({
+            name: (item.name || '').trim(),
+            hours: parseFloat(item.hours) || 0
+        })).filter(item => item.name);
+    } catch {
+        return [];
+    }
 }
 
 function bindTeacherButtons() {
