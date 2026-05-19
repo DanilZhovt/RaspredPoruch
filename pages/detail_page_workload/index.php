@@ -72,7 +72,7 @@ if (isset($tableRows['error']) && $tableRows['error'] === true) {
 <?php if ($errorMessage): ?>
     <div class="error-container" style="max-width: 800px; margin: 100px auto; padding: 20px; text-align: center;">
         <div class="error-message" style="background: #fff3f3; border: 1px solid #ffcaca; border-radius: 8px; padding: 30px;">
-            <h2 style="color: #d32f2f; margin-bottom: 15px;">⚠️ Ошибка</h2>
+            <h2 style="color: #d32f2f; margin-bottom: 15px;">Ошибка</h2>
             <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
                 <?= htmlspecialchars($errorMessage) ?>
             </p>
