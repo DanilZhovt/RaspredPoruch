@@ -34,7 +34,7 @@ class ApiClient
      * @param array $params
      * @return array|mixed
      */
-    private function request(string $endpoint, array $params = []): mixed
+    protected function request(string $endpoint, array $params = []): mixed
     {
         $url = $this->baseUrl . $endpoint;
 
@@ -96,14 +96,12 @@ class ApiClient
         }
 
         if ($httpCode >= 400) {
-            // Сохраняем сырой ответ как строку для анализа
             $errorData = [
                 'error' => "HTTP Error: {$httpCode}",
                 'http_code' => $httpCode,
-                'response' => $response  // Сохраняем как строку, не декодируем
+                'response' => $response
             ];
 
-            // Пробуем декодировать JSON для дополнительной информации
             $decodedResponse = json_decode($response, true);
             if ($decodedResponse !== null) {
                 $errorData['response_decoded'] = $decodedResponse;
