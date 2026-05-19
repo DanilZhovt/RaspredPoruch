@@ -323,36 +323,39 @@ function bindSave() {
 }
 
 async function saveDistribution() {
-    const footer = document.querySelector('.footer');
+    // Проверяем, есть ли превышения
+    if (hasOverDistribution()) {
+        showOverDistributionModal();
+        return; // прерываем сохранение
+    }
 
+    // Если всё в порядке, скрываем окно (на случай, если оно было открыто)
+    hideOverDistributionModal();
+
+    const footer = document.querySelector('.footer');
     const number = footer.dataset.number;
     const name = footer.dataset.name;
 
-    const url =
-        '/classes/save.php?number=' +
-        encodeURIComponent(number) +
-        '&name=' +
-        encodeURIComponent(name);
-
+    const url = '/classes/save.php?number=' + encodeURIComponent(number) + '&name=' + encodeURIComponent(name);
     const button = elements.saveBtn;
 
     button.disabled = true;
     button.textContent = 'Сохранение...';
 
     try {
-        await fetch(url, {
+        const response = await fetch(url, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(state.distribution)
         });
 
-        location.reload();
+        if (!response.ok) {
+            throw new Error('HTTP error ' + response.status);
+        }
 
+        location.reload();
     } catch {
         alert('Ошибка сети');
-
     } finally {
         button.disabled = false;
         button.textContent = 'Сохранить';
@@ -420,3 +423,41 @@ function bindHeaderToggle() {
             : 'Скрыть фильтры';
     });
 }
+
+function hasOverDistribution() {
+    return document.querySelector('.over') !== null; // класс .over означает превышение
+}
+
+function showOverDistributionModal() {
+    const modal = document.getElementById('overDistributionModal');
+    if (modal) {
+        modal.style.display = 'block';
+        document.body.classList.add('modal-open'); // Блокируем страницу
+    }
+}
+
+function hideOverDistributionModal() {
+    const modal = document.getElementById('overDistributionModal');
+    if (modal) {
+        modal.style.display = 'none';
+        document.body.classList.remove('modal-open'); // Разблокируем
+    }
+}
+
+// Назначить обработчики при загрузке страницы
+document.addEventListener('DOMContentLoaded', function() {
+    const closeBtn = document.getElementById('closeOverModalBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', hideOverDistributionModal);
+    }
+
+    // Закрытие по клику на полупрозрачный фон
+    const modal = document.getElementById('overDistributionModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                hideOverDistributionModal();
+            }
+        });
+    }
+});

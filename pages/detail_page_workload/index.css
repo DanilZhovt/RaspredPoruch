@@ -330,3 +330,11 @@ tr:hover td {
 .toggle-header-btn:hover {
     background: var(--primary-hover);
 }
+
+body.modal-open > *:not(#overDistributionModal) {
+    pointer-events: none;
+}
+
+body.modal-open {
+    overflow: hidden;
+}
