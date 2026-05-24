@@ -256,12 +256,9 @@ if (isset($tableRows['error']) && $tableRows['error'] === true) {
         <button id="toggleHeaderBtn">
             Скрыть фильтры
         </button>
-        <a
-                class="btn-link"
-                href="/pages/report_page/?number=<?= urlencode($_GET['number']) ?>&name=<?= urlencode($_GET['name']) ?>"
-        >
+        <button id="generateReportBtn" class="btn-link">
             Сформировать отчет
-        </a>
+        </button>
         <a
                 class="btn-link"
                 href="/pages/list_workloads"

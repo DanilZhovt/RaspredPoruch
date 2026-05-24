@@ -15,7 +15,8 @@ const elements = {
     table: document.querySelector('table'),
     searchInput: document.getElementById('teacherSearch'),
     saveBtn: document.getElementById('saveBtn'),
-    applyFilterBtn: document.getElementById('applyFilterBtn')
+    applyFilterBtn: document.getElementById('applyFilterBtn'),
+    generateReportBtn: document.getElementById('generateReportBtn')
 };
 
 init();
@@ -27,6 +28,7 @@ function init() {
     bindSearch();
     bindFilters();
     bindSave();
+    bindGenerateReport();
     bindRowSelection();
     bindHeaderToggle();
 
@@ -361,10 +363,14 @@ function getFilterValue(id) {
 }
 
 function bindSave() {
-    elements.saveBtn?.addEventListener('click', saveDistribution);
+    elements.saveBtn?.addEventListener('click', () => saveDistribution(false));
 }
 
-async function saveDistribution() {
+function bindGenerateReport() {
+    elements.generateReportBtn?.addEventListener('click', () => saveDistribution(true));
+}
+
+async function saveDistribution(redirectAfterSave = false) {
     if (hasOverDistribution()) {
         showOverDistributionModal();
         return;
@@ -377,9 +383,10 @@ async function saveDistribution() {
     const name = footer.dataset.name;
 
     const url = '/classes/save.php?number=' + encodeURIComponent(number) + '&name=' + encodeURIComponent(name);
-    const button = elements.saveBtn;
+    const button = redirectAfterSave ? elements.generateReportBtn : elements.saveBtn;
 
     button.disabled = true;
+    const originalText = button.textContent;
     button.textContent = 'Сохранение...';
 
     try {
@@ -393,12 +400,15 @@ async function saveDistribution() {
             throw new Error('HTTP error ' + response.status);
         }
 
-        location.reload();
-    } catch {
-        alert('Ошибка сети');
-    } finally {
+        if (redirectAfterSave) {
+            window.location.href = '/pages/report_page/?number=' + encodeURIComponent(number) + '&name=' + encodeURIComponent(name);
+        } else {
+            location.reload();
+        }
+    } catch (error) {
+        alert('Ошибка при сохранении: ' + error.message);
         button.disabled = false;
-        button.textContent = 'Сохранить';
+        button.textContent = originalText;
     }
 }
 
