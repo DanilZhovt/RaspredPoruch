@@ -367,7 +367,7 @@ function bindSave() {
 async function saveDistribution() {
     if (hasOverDistribution()) {
         showOverDistributionModal();
-        return; // прерываем сохранение
+        return;
     }
 
     hideOverDistributionModal();
@@ -465,14 +465,14 @@ function bindHeaderToggle() {
 }
 
 function hasOverDistribution() {
-    return document.querySelector('.over') !== null; // класс .over означает превышение
+    return document.querySelector('.over') !== null;
 }
 
 function showOverDistributionModal() {
     const modal = document.getElementById('overDistributionModal');
     if (modal) {
         modal.style.display = 'block';
-        document.body.classList.add('modal-open'); // Блокируем страницу
+        document.body.classList.add('modal-open');
     }
 }
 
@@ -480,7 +480,7 @@ function hideOverDistributionModal() {
     const modal = document.getElementById('overDistributionModal');
     if (modal) {
         modal.style.display = 'none';
-        document.body.classList.remove('modal-open'); // Разблокируем
+        document.body.classList.remove('modal-open');
     }
 }
 
