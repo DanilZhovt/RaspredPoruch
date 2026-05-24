@@ -4,17 +4,85 @@ class TeacherWorkloadReport
 {
     private array $rows;
     private array $teachers;
+    private array $report;
+    private array $lessonTypes;
+    private array $totals;
 
     public function __construct(array $rows, array $teachers)
     {
         $this->rows = $rows;
         $this->teachers = $teachers;
+        $this->report = [];
+        $this->lessonTypes = [];
+        $this->totals = [];
     }
 
     public function build(): array
     {
-        $lessonTypes = $this->getLessonTypes();
+        $this->lessonTypes = $this->getLessonTypes();
+        $this->report = $this->buildReport();
+        $this->totals = $this->calculateTotals();
 
+        return [
+            'lessonTypes' => $this->lessonTypes,
+            'report' => $this->report,
+            'totals' => $this->totals,
+        ];
+    }
+
+    public function getReport(): array
+    {
+        return $this->report;
+    }
+
+    public function getLessonTypes(): array
+    {
+        if (!empty($this->lessonTypes)) {
+            return $this->lessonTypes;
+        }
+
+        $lessonTypes = [];
+
+        foreach ($this->rows as $row) {
+            $type = trim($row['Нагрузка'] ?? '');
+
+            if ($type && !in_array($type, $lessonTypes, true)) {
+                $lessonTypes[] = $type;
+            }
+        }
+
+        sort($lessonTypes);
+
+        return $lessonTypes;
+    }
+
+    public function getTotals(): array
+    {
+        return $this->totals;
+    }
+
+    public function getDistributedTotal(): float
+    {
+        return $this->totals['distributed_total'] ?? 0;
+    }
+
+    public function getLoadTotal(): float
+    {
+        return $this->totals['load_total'] ?? 0;
+    }
+
+    public function getDistributedByType(string $type): float
+    {
+        return $this->totals['distributed_by_type'][$type] ?? 0;
+    }
+
+    public function getLoadByType(string $type): float
+    {
+        return $this->totals['load_by_type'][$type] ?? 0;
+    }
+
+    private function buildReport(): array
+    {
         $report = [];
 
         foreach ($this->rows as $row) {
@@ -32,7 +100,6 @@ class TeacherWorkloadReport
                 }
 
                 $hours = (float)($employee['Количество'] ?? 0);
-
                 $teacherInfo = $this->findTeacher($teacherName);
 
                 if (!isset($report[$teacherName])) {
@@ -43,7 +110,7 @@ class TeacherWorkloadReport
                         'Итого' => 0,
                     ];
 
-                    foreach ($lessonTypes as $lessonType) {
+                    foreach ($this->lessonTypes as $lessonType) {
                         $report[$teacherName][$lessonType] = 0;
                     }
                 }
@@ -53,27 +120,53 @@ class TeacherWorkloadReport
             }
         }
 
-        return [
-            'lessonTypes' => $lessonTypes,
-            'report' => array_values($report),
-        ];
+        return array_values($report);
     }
 
-    private function getLessonTypes(): array
+    private function calculateTotals(): array
     {
-        $lessonTypes = [];
+        $totals = [
+            'distributed_total' => 0,
+            'load_total' => 0,
+            'distributed_by_type' => [],
+            'load_by_type' => [],
+        ];
 
-        foreach ($this->rows as $row) {
-            $type = trim($row['Нагрузка'] ?? '');
+        // Инициализация массивов по типам
+        foreach ($this->lessonTypes as $type) {
+            $totals['distributed_by_type'][$type] = 0;
+            $totals['load_by_type'][$type] = 0;
+        }
 
-            if ($type && !in_array($type, $lessonTypes, true)) {
-                $lessonTypes[] = $type;
+        // Расчет распределенной нагрузки
+        foreach ($this->report as $teacher) {
+            $totals['distributed_total'] += $teacher['Итого'];
+
+            foreach ($this->lessonTypes as $type) {
+                if (isset($teacher[$type]) && $teacher[$type] !== '') {
+                    $totals['distributed_by_type'][$type] += (float)$teacher[$type];
+                }
             }
         }
 
-        sort($lessonTypes);
+        // Расчет общей нагрузки
+        foreach ($this->rows as $row) {
+            $rowType = trim($row['Нагрузка'] ?? '');
 
-        return $lessonTypes;
+            // Общая нагрузка по всем сотрудникам
+            if (!empty($row['Сотрудники'])) {
+                foreach ($row['Сотрудники'] as $employee) {
+                    $totals['load_total'] += (float)($employee['Количество'] ?? 0);
+                }
+            }
+
+            // Общая нагрузка по типам
+            if (in_array($rowType, $this->lessonTypes)) {
+                $totals['load_by_type'][$rowType] += (float)($row['Количество'] ?? 0);
+            }
+        }
+
+        return $totals;
     }
 
     private function findTeacher(string $teacherName): ?array

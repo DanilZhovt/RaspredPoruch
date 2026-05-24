@@ -12,9 +12,7 @@ require_once 'TeacherWorkloadReport.php';
 
 $api = new ApiClient(BASE_URL_API_1C);
 $errorMessage = null;
-$data = [];
-$rows = [];
-$teachers = [];
+$reportBuilder = null;
 
 $rows = $api->getWorkloadByNumber($_GET['number'] ?? '');
 
@@ -41,24 +39,7 @@ if (isset($rows['error']) && $rows['error'] === true) {
         $errorMessage = 'Некорректные данные преподавателей';
     } else {
         $reportBuilder = new TeacherWorkloadReport($rows, $teachers);
-        $data = $reportBuilder->build();
-    }
-}
-
-$totalDistributed = 0;
-$totalLoad = 0;
-
-if (!empty($data['report'])) {
-    foreach ($data['report'] as $teacher) {
-        $totalDistributed += $teacher['Итого'];
-    }
-
-    foreach ($rows as $row) {
-        if (!empty($row['Сотрудники'])) {
-            foreach ($row['Сотрудники'] as $employee) {
-                $totalLoad += (float)($employee['Количество'] ?? 0);
-            }
-        }
+        $reportBuilder->build();
     }
 }
 ?>
@@ -74,24 +55,22 @@ if (!empty($data['report'])) {
 <body>
 
 <?php if ($errorMessage): ?>
-    <div class="error-container" style="max-width: 800px; margin: 100px auto; padding: 20px; text-align: center;">
-        <div class="error-message" style="background: #fff3f3; border: 1px solid #ffcaca; border-radius: 8px; padding: 30px;">
-            <h2 style="color: #d32f2f; margin-bottom: 15px;">Ошибка</h2>
-            <p style="font-size: 16px; color: #333; margin-bottom: 20px;">
-                <?= htmlspecialchars($errorMessage) ?>
-            </p>
-            <div style="margin-top: 30px;">
-                <a href="/pages/list_workloads" class="btn-link" style="display: inline-block; padding: 10px 20px; background: #1976d2; color: white; text-decoration: none; border-radius: 4px;">
-                    ← К списку нагрузок
+    <div class="error-container">
+        <div class="error-message">
+            <h2>Ошибка</h2>
+            <p><?= htmlspecialchars($errorMessage) ?></p>
+            <div class="error-actions">
+                <a href="/pages/list_workloads" class="btn-back">
+                    К списку нагрузок
                 </a>
-                <button onclick="window.location.reload()" style="display: inline-block; padding: 10px 20px; background: #4caf50; color: white; border: none; border-radius: 4px; cursor: pointer; margin-left: 10px;">
+                <button onclick="window.location.reload()" class="btn-retry">
                     Попробовать снова
                 </button>
             </div>
         </div>
     </div>
 <?php else: ?>
-    <h2>Отчет по учебной нагрузке</h2>
+    <h2 class="page-title">Отчет по учебной нагрузке</h2>
 
     <table>
         <tr>
@@ -100,38 +79,23 @@ if (!empty($data['report'])) {
             <th>Ставка</th>
             <th>Должность</th>
 
-            <?php foreach ($data['lessonTypes'] as $type): ?>
+            <?php foreach ($reportBuilder->getLessonTypes() as $type): ?>
                 <th><?= htmlspecialchars($type) ?></th>
             <?php endforeach; ?>
 
             <th>Итого</th>
         </tr>
 
-        <?php
-        $lineNumber = 1;
-        $columnSums = [];
-        foreach ($data['lessonTypes'] as $type) {
-            $columnSums[$type] = 0;
-        }
-        ?>
-
-        <?php foreach ($data['report'] as $teacher): ?>
+        <?php $lineNumber = 1; ?>
+        <?php foreach ($reportBuilder->getReport() as $teacher): ?>
             <tr>
                 <td><?= $lineNumber++ ?></td>
                 <td class="name"><?= htmlspecialchars($teacher['ФИО']) ?></td>
                 <td><?= htmlspecialchars($teacher['Ставка']) ?></td>
                 <td><?= htmlspecialchars($teacher['Должность']) ?></td>
 
-                <?php foreach ($data['lessonTypes'] as $type): ?>
-                    <td>
-                        <?php
-                        $value = $teacher[$type] ?: '';
-                        echo $value;
-                        if ($value !== '') {
-                            $columnSums[$type] += (float)$value;
-                        }
-                        ?>
-                    </td>
+                <?php foreach ($reportBuilder->getLessonTypes() as $type): ?>
+                    <td><?= $teacher[$type] ?: '' ?></td>
                 <?php endforeach; ?>
 
                 <td><strong><?= $teacher['Итого'] ?></strong></td>
@@ -140,31 +104,18 @@ if (!empty($data['report'])) {
 
         <tr class="total-row">
             <td colspan="4"><strong>Распределено:</strong></td>
-            <?php foreach ($data['lessonTypes'] as $type): ?>
-                <td><strong><?= $columnSums[$type] > 0 ? $columnSums[$type] : '' ?></strong></td>
+            <?php foreach ($reportBuilder->getLessonTypes() as $type): ?>
+                <td><strong><?= $reportBuilder->getDistributedByType($type) ?: '' ?></strong></td>
             <?php endforeach; ?>
-            <td><strong><?= $totalDistributed ?></strong></td>
+            <td><strong><?= $reportBuilder->getDistributedTotal() ?></strong></td>
         </tr>
 
         <tr class="total-row">
             <td colspan="4"><strong>Общая нагрузка:</strong></td>
-            <?php
-            $totalLoadByType = [];
-            foreach ($data['lessonTypes'] as $type) {
-                $totalLoadByType[$type] = 0;
-            }
-
-            foreach ($rows as $row) {
-                $rowType = trim($row['Нагрузка'] ?? '');
-                if (in_array($rowType, $data['lessonTypes'])) {
-                    $totalLoadByType[$rowType] += (float)($row['Количество'] ?? 0);
-                }
-            }
-            ?>
-            <?php foreach ($data['lessonTypes'] as $type): ?>
-                <td><strong><?= $totalLoadByType[$type] > 0 ? $totalLoadByType[$type] : '' ?></strong></td>
+            <?php foreach ($reportBuilder->getLessonTypes() as $type): ?>
+                <td><strong><?= $reportBuilder->getLoadByType($type) ?: '' ?></strong></td>
             <?php endforeach; ?>
-            <td><strong><?= $totalLoad ?></strong></td>
+            <td><strong><?= $reportBuilder->getLoadTotal() ?></strong></td>
         </tr>
     </table>
 

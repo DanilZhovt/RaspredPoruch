@@ -7,6 +7,12 @@
     --border: #e5e7eb;
     --shadow: 0 4px 12px rgba(0,0,0,0.08);
     --radius: 12px;
+
+    --primary: #1f2937;
+    --success: #4caf50;
+    --error-bg: #fff3f3;
+    --error-border: #ffcaca;
+    --error-text: #d32f2f;
 }
 
 * {
@@ -74,7 +80,7 @@ tr:hover td {
 }
 
 td strong {
-    color: var(--primary);
+    color: var(--text);
     font-size: 14px;
 }
 
@@ -129,12 +135,6 @@ table tr:last-child td {
     background: #d1d5db;
 }
 
-h2 {
-    text-align: center;
-    margin-bottom: 20px;
-    font-size: 24px;
-}
-
 .total-row {
     background-color: #f5f5f5;
     font-weight: bold;
@@ -147,4 +147,63 @@ h2 {
 
 .total-row td:first-child {
     text-align: right;
+}
+
+.error-container {
+    max-width: 800px;
+    margin: 100px auto;
+    padding: 20px;
+    text-align: center;
+}
+
+.error-message {
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
+    border-radius: 8px;
+    padding: 30px;
+}
+
+.error-message h2 {
+    color: var(--error-text);
+    margin-bottom: 15px;
+}
+
+.error-message p {
+    font-size: 16px;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+.error-actions {
+    margin-top: 30px;
+}
+
+.btn-back {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--primary);
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+}
+
+.btn-retry {
+    display: inline-block;
+    padding: 10px 20px;
+    background: var(--success);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    margin-left: 10px;
+}
+
+.btn-retry:hover {
+    opacity: 0.9;
+}
+
+.page-title {
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 24px;
 }
