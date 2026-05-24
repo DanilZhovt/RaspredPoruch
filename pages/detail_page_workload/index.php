@@ -71,7 +71,7 @@ if (isset($tableRows['error']) && $tableRows['error'] === true) {
 
 <div id="overDistributionModal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 10000;">
     <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; padding: 24px 32px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); text-align: center; max-width: 420px; width: 90%;">
-        <h3 style="margin: 0 0 10px 0; color: #d32f2f;">⚠️ Ошибка распределения</h3>
+        <h3 style="margin: 0 0 10px 0; color: #d32f2f;">Ошибка распределения</h3>
         <p style="margin: 0 0 20px 0; font-size: 15px; color: #333;">Невозможно сохранить: в некоторых строках распределённая нагрузка превышает общую. Проверьте выделенные ячейки.</p>
         <button id="closeOverModalBtn" style="padding: 8px 32px; background: #1976d2; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 15px;">ОК</button>
     </div>

@@ -113,9 +113,17 @@ function resetTeacherSelection() {
 
 function highlightTeacherRows(teacher) {
     elements.rows.forEach(row => {
-        const teachers = getTeachersFromRow(row);
+        const rowId = row.dataset.id;
+        const teachersFromData = getTeachersFromRow(row);
+        const teachersFromState = state.distribution[rowId]
+            ? Object.keys(state.distribution[rowId]).filter(key =>
+                key !== '_base' && state.distribution[rowId][key] > 0
+            )
+            : [];
 
-        if (teachers.includes(teacher)) {
+        const allTeachers = [...new Set([...teachersFromData, ...teachersFromState])];
+
+        if (allTeachers.includes(teacher)) {
             row.classList.add('highlight');
         }
     });
@@ -165,10 +173,23 @@ function bindTableEditing() {
         .querySelectorAll(selectors.distributed)
         .forEach(cell => {
             cell.addEventListener('keypress', validateCellInput);
-            cell.addEventListener('blur', cleanupCell);
+            cell.addEventListener('blur', handleCellBlur);
 
             cell.addEventListener('focus', selectCellText);
         });
+}
+
+function handleCellBlur(event) {
+    const cell = event.target;
+
+    cleanupCell(event);
+
+    if (state.currentTeacher) {
+        const row = cell.closest('tr');
+        updateRowTeachersAttribute(row);
+
+        renderTable();
+    }
 }
 
 function selectCellText(event) {
@@ -199,7 +220,6 @@ function handleCellInput(event) {
         .replace(',', '.')
         .replace(/[^\d.]/g, '');
 
-    // защита от нескольких точек
     const parts = raw.split('.');
 
     if (parts.length > 2) {
@@ -218,7 +238,29 @@ function handleCellInput(event) {
 
     state.distribution[rowId][state.currentTeacher] = value;
 
+    updateRowTeachersAttribute(row);
+
     updateDistributedColors();
+}
+
+function updateRowTeachersAttribute(row) {
+    const rowId = row.dataset.id;
+    const teachersData = state.distribution[rowId] || {};
+
+    const teachersWithHours = Object.entries(teachersData)
+        .filter(([key, value]) => key !== '_base' && value > 0)
+        .map(([key]) => key);
+
+    row.dataset.teachers = JSON.stringify(teachersWithHours);
+
+    const teachersHoursData = Object.entries(teachersData)
+        .filter(([key]) => key !== '_base')
+        .map(([key, value]) => ({
+            name: key,
+            hours: value
+        }));
+
+    row.dataset.teachersHours = JSON.stringify(teachersHoursData);
 }
 
 function moveCaretToEnd(element) {
@@ -323,13 +365,11 @@ function bindSave() {
 }
 
 async function saveDistribution() {
-    // Проверяем, есть ли превышения
     if (hasOverDistribution()) {
         showOverDistributionModal();
         return; // прерываем сохранение
     }
 
-    // Если всё в порядке, скрываем окно (на случай, если оно было открыто)
     hideOverDistributionModal();
 
     const footer = document.querySelector('.footer');
@@ -444,14 +484,12 @@ function hideOverDistributionModal() {
     }
 }
 
-// Назначить обработчики при загрузке страницы
 document.addEventListener('DOMContentLoaded', function() {
     const closeBtn = document.getElementById('closeOverModalBtn');
     if (closeBtn) {
         closeBtn.addEventListener('click', hideOverDistributionModal);
     }
 
-    // Закрытие по клику на полупрозрачный фон
     const modal = document.getElementById('overDistributionModal');
     if (modal) {
         modal.addEventListener('click', function(e) {
