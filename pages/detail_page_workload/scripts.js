@@ -382,7 +382,7 @@ async function saveDistribution(redirectAfterSave = false) {
     const number = footer.dataset.number;
     const name = footer.dataset.name;
 
-    const url = '/classes/save.php?number=' + encodeURIComponent(number) + '&name=' + encodeURIComponent(name);
+    const url = '/classes/DistributionSaver.php?number=' + encodeURIComponent(number) + '&name=' + encodeURIComponent(name);
     const button = redirectAfterSave ? elements.generateReportBtn : elements.saveBtn;
 
     button.disabled = true;
@@ -396,8 +396,14 @@ async function saveDistribution(redirectAfterSave = false) {
             body: JSON.stringify(state.distribution)
         });
 
+        const result = await response.json();
+
         if (!response.ok) {
             throw new Error('HTTP error ' + response.status);
+        }
+
+        if (result.status === 'error') {
+            throw new Error(result.message || 'Unknown error');
         }
 
         if (redirectAfterSave) {
