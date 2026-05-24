@@ -1,6 +1,4 @@
 <?php
-// tests/DistributionSaverTest.php
-
 require_once __DIR__ . '/../classes/ApiClient.php';
 require_once __DIR__ . '/../classes/DistributionSaver.php';
 

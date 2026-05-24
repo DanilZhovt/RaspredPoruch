@@ -1,6 +1,4 @@
 <?php
-// tests/ApiClientTest.php
-
 require_once __DIR__ . '/../classes/ApiClient.php';
 
 class ApiClientTest extends PHPUnit\Framework\TestCase

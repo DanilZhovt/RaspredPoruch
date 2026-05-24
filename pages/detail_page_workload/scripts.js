@@ -19,7 +19,33 @@ const elements = {
     generateReportBtn: document.getElementById('generateReportBtn')
 };
 
-init();
+if (typeof module !== 'undefined' && module.exports) {
+    // Для тестов - экспортируем функции и состояние
+    module.exports = {
+        parseNumber,
+        getTeachersFromRow,
+        getTeachersDataFromRow,
+        initDistribution,
+        getRowTotal,
+        highlightTeacherRows,
+        updateRowTeachersAttribute,
+        handleCellInput,
+        updateDistributedColors,
+        hasOverDistribution,
+        applyFilters,
+        resetTeacherSelection,
+        bindTeacherButtons,
+        cleanupCell,
+        validateCellInput,
+        setEditingEnabled,
+        renderTable,
+        state,
+        init
+    };
+} else {
+    // Для браузера - запускаем автоматически
+    init();
+}
 
 function init() {
     initDistribution();
@@ -501,6 +527,22 @@ function hideOverDistributionModal() {
         document.body.classList.remove('modal-open');
     }
 }
+
+document.addEventListener('DOMContentLoaded', function() {
+    const closeBtn = document.getElementById('closeOverModalBtn');
+    if (closeBtn) {
+        closeBtn.addEventListener('click', hideOverDistributionModal);
+    }
+
+    const modal = document.getElementById('overDistributionModal');
+    if (modal) {
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                hideOverDistributionModal();
+            }
+        });
+    }
+});
 
 document.addEventListener('DOMContentLoaded', function() {
     const closeBtn = document.getElementById('closeOverModalBtn');

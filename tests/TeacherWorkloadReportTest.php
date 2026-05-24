@@ -1,6 +1,4 @@
 <?php
-// tests/TeacherWorkloadReportTest.php
-
 require_once __DIR__ . '/../pages/report_page/TeacherWorkloadReport.php';
 
 class TeacherWorkloadReportTest extends PHPUnit\Framework\TestCase
@@ -104,7 +102,6 @@ class TeacherWorkloadReportTest extends PHPUnit\Framework\TestCase
         $reportData = $report->getReport();
         $this->assertCount(3, $reportData);
 
-        // Проверяем Иванова И.И.
         $ivanov = $this->findTeacherByName($reportData, 'Иванов И.И.');
         $this->assertNotNull($ivanov);
         $this->assertEquals('Профессор', $ivanov['Должность']);
@@ -113,7 +110,6 @@ class TeacherWorkloadReportTest extends PHPUnit\Framework\TestCase
         $this->assertEquals(5, $ivanov['Лекции']);
         $this->assertEquals(10, $ivanov['Практика']);
 
-        // Проверяем Петрова П.П.
         $petrov = $this->findTeacherByName($reportData, 'Петров П.П.');
         $this->assertNotNull($petrov);
         $this->assertEquals('Доцент', $petrov['Должность']);
