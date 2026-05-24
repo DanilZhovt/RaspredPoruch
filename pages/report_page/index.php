@@ -16,22 +16,18 @@ $data = [];
 $rows = [];
 $teachers = [];
 
-// Получаем данные
 $rows = $api->getWorkloadByNumber($_GET['number'] ?? '');
 
-// Проверяем ошибки подключения
 if (ApiClient::isConnectionError($rows)) {
     header('Location: /pages/connection_error/');
     exit;
 }
 
-// Проверяем, не вернул ли API ошибку
 if (isset($rows['error']) && $rows['error'] === true) {
     $errorMessage = $rows['message'] ?? 'Документ не найден';
 } elseif (!is_array($rows) || empty($rows)) {
     $errorMessage = 'Документ не найден или пуст';
 } else {
-    // Получаем преподавателей только если есть данные о нагрузке
     $teachers = $api->getTeachers(urldecode($_GET['name'] ?? ''));
 
     if (ApiClient::isConnectionError($teachers)) {
@@ -39,15 +35,30 @@ if (isset($rows['error']) && $rows['error'] === true) {
         exit;
     }
 
-    // Проверяем ошибки получения преподавателей
     if (isset($teachers['error']) && $teachers['error'] === true) {
         $errorMessage = $teachers['message'] ?? 'Ошибка получения списка преподавателей';
     } elseif (!is_array($teachers)) {
         $errorMessage = 'Некорректные данные преподавателей';
     } else {
-        // Все данные в порядке, строим отчёт
         $reportBuilder = new TeacherWorkloadReport($rows, $teachers);
         $data = $reportBuilder->build();
+    }
+}
+
+$totalDistributed = 0;
+$totalLoad = 0;
+
+if (!empty($data['report'])) {
+    foreach ($data['report'] as $teacher) {
+        $totalDistributed += $teacher['Итого'];
+    }
+
+    foreach ($rows as $row) {
+        if (!empty($row['Сотрудники'])) {
+            foreach ($row['Сотрудники'] as $employee) {
+                $totalLoad += (float)($employee['Количество'] ?? 0);
+            }
+        }
     }
 }
 ?>
@@ -63,7 +74,6 @@ if (isset($rows['error']) && $rows['error'] === true) {
 <body>
 
 <?php if ($errorMessage): ?>
-    <!-- Блок ошибки -->
     <div class="error-container" style="max-width: 800px; margin: 100px auto; padding: 20px; text-align: center;">
         <div class="error-message" style="background: #fff3f3; border: 1px solid #ffcaca; border-radius: 8px; padding: 30px;">
             <h2 style="color: #d32f2f; margin-bottom: 15px;">Ошибка</h2>
@@ -81,7 +91,6 @@ if (isset($rows['error']) && $rows['error'] === true) {
         </div>
     </div>
 <?php else: ?>
-    <!-- Основной контент отчёта -->
     <h2>Отчет по учебной нагрузке</h2>
 
     <table>
@@ -98,7 +107,14 @@ if (isset($rows['error']) && $rows['error'] === true) {
             <th>Итого</th>
         </tr>
 
-        <?php $lineNumber = 1; ?>
+        <?php
+        $lineNumber = 1;
+        $columnSums = [];
+        foreach ($data['lessonTypes'] as $type) {
+            $columnSums[$type] = 0;
+        }
+        ?>
+
         <?php foreach ($data['report'] as $teacher): ?>
             <tr>
                 <td><?= $lineNumber++ ?></td>
@@ -107,12 +123,49 @@ if (isset($rows['error']) && $rows['error'] === true) {
                 <td><?= htmlspecialchars($teacher['Должность']) ?></td>
 
                 <?php foreach ($data['lessonTypes'] as $type): ?>
-                    <td><?= $teacher[$type] ?: '' ?></td>
+                    <td>
+                        <?php
+                        $value = $teacher[$type] ?: '';
+                        echo $value;
+                        if ($value !== '') {
+                            $columnSums[$type] += (float)$value;
+                        }
+                        ?>
+                    </td>
                 <?php endforeach; ?>
 
                 <td><strong><?= $teacher['Итого'] ?></strong></td>
             </tr>
         <?php endforeach; ?>
+
+        <tr class="total-row">
+            <td colspan="4"><strong>Распределено:</strong></td>
+            <?php foreach ($data['lessonTypes'] as $type): ?>
+                <td><strong><?= $columnSums[$type] > 0 ? $columnSums[$type] : '' ?></strong></td>
+            <?php endforeach; ?>
+            <td><strong><?= $totalDistributed ?></strong></td>
+        </tr>
+
+        <tr class="total-row">
+            <td colspan="4"><strong>Общая нагрузка:</strong></td>
+            <?php
+            $totalLoadByType = [];
+            foreach ($data['lessonTypes'] as $type) {
+                $totalLoadByType[$type] = 0;
+            }
+
+            foreach ($rows as $row) {
+                $rowType = trim($row['Нагрузка'] ?? '');
+                if (in_array($rowType, $data['lessonTypes'])) {
+                    $totalLoadByType[$rowType] += (float)($row['Количество'] ?? 0);
+                }
+            }
+            ?>
+            <?php foreach ($data['lessonTypes'] as $type): ?>
+                <td><strong><?= $totalLoadByType[$type] > 0 ? $totalLoadByType[$type] : '' ?></strong></td>
+            <?php endforeach; ?>
+            <td><strong><?= $totalLoad ?></strong></td>
+        </tr>
     </table>
 
     <div class="footer">
