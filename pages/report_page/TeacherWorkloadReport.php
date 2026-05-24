@@ -132,13 +132,11 @@ class TeacherWorkloadReport
             'load_by_type' => [],
         ];
 
-        // Инициализация массивов по типам
         foreach ($this->lessonTypes as $type) {
             $totals['distributed_by_type'][$type] = 0;
             $totals['load_by_type'][$type] = 0;
         }
 
-        // Расчет распределенной нагрузки
         foreach ($this->report as $teacher) {
             $totals['distributed_total'] += $teacher['Итого'];
 
@@ -153,14 +151,12 @@ class TeacherWorkloadReport
         foreach ($this->rows as $row) {
             $rowType = trim($row['Нагрузка'] ?? '');
 
-            // Общая нагрузка по всем сотрудникам
             if (!empty($row['Сотрудники'])) {
                 foreach ($row['Сотрудники'] as $employee) {
                     $totals['load_total'] += (float)($employee['Количество'] ?? 0);
                 }
             }
 
-            // Общая нагрузка по типам
             if (in_array($rowType, $this->lessonTypes)) {
                 $totals['load_by_type'][$rowType] += (float)($row['Количество'] ?? 0);
             }

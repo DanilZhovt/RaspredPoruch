@@ -23,7 +23,10 @@ class DistributionSaver
 
     public function handleRequest(): void
     {
-        session_start();
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
         if (!isset($_SESSION['1c_username']) || !isset($_SESSION['1c_password'])) {
             $this->sendResponse(['status' => 'error', 'message' => 'Unauthorized']);
             return;
@@ -166,11 +169,15 @@ class DistributionSaver
 
     private function sendResponse(array $data): void
     {
-        header('Content-Type: application/json');
+        if (!headers_sent()) {
+            header('Content-Type: application/json');
+        }
         echo json_encode($data);
         exit;
     }
 }
 
-$saver = new DistributionSaver();
-$saver->handleRequest();
+if (basename($_SERVER['SCRIPT_FILENAME'] ?? '') === 'DistributionSaver.php') {
+    $saver = new DistributionSaver();
+    $saver->handleRequest();
+}
