@@ -100,6 +100,12 @@ class TeacherWorkloadReport
                 }
 
                 $hours = (float)($employee['Количество'] ?? 0);
+
+                if ($hours <= 0) {
+                    continue;
+                }
+
+                $hours = (float)($employee['Количество'] ?? 0);
                 $teacherInfo = $this->findTeacher($teacherName);
 
                 if (!isset($report[$teacherName])) {

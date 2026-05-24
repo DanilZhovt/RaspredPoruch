@@ -49,7 +49,9 @@ function initDistribution() {
 
         if (teachersData.length > 0) {
             teachersData.forEach(teacherData => {
-                state.distribution[rowId][teacherData.name] = teacherData.hours;
+                if (teacherData.hours > 0) {
+                    state.distribution[rowId][teacherData.name] = teacherData.hours;
+                }
             });
         } else {
             const base = parseNumber(cell?.dataset.base);
@@ -69,7 +71,7 @@ function getTeachersDataFromRow(row) {
         return data.map(item => ({
             name: (item.name || '').trim(),
             hours: parseFloat(item.hours) || 0
-        })).filter(item => item.name);
+        })).filter(item => item.name && item.hours > 0);
     } catch {
         return [];
     }
