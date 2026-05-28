@@ -26,10 +26,7 @@ function updateTeacherStats() {
         if (!teacher) return;
 
         const currentHours = calculateTeacherCurrentHours(teacher);
-        const minKol = parseFloat(button.dataset.minKol) || 0;
-        const maxKol = parseFloat(button.dataset.maxKol) || 0;
 
-        // Ищем элементы с классами min-kol-value и max-kol-value
         const minKolValue = button.querySelector('.min-kol-value');
         const maxKolValue = button.querySelector('.max-kol-value');
 
@@ -328,7 +325,7 @@ function handleCellBlur(event) {
 
         highlightTeacherRows(state.currentTeacher);
         renderTable();
-        updateTeacherStats(); // Добавьте эту строку
+        updateTeacherStats();
     }
 }
 
@@ -356,27 +353,26 @@ function handleCellInput(event) {
     const row = cell.closest('tr');
     const rowId = row.dataset.id;
 
-    let raw = cell.textContent
-        .replace(',', '.')
-        .replace(/[^\d.]/g, '');
+    let raw = cell.textContent.replace(/[^\d]/g, '');
 
-    const parts = raw.split('.');
+    raw = parseInt(raw) || 0;
 
-    if (parts.length > 2) {
-        raw = parts[0] + '.' + parts.slice(1).join('');
+    if (raw > 9999) {
+        raw = 9999;
+    }
+    if (raw < 0) {
+        raw = 0;
     }
 
     cell.textContent = raw;
 
     moveCaretToEnd(cell);
 
-    const value = parseNumber(raw);
-
     if (!state.distribution[rowId]) {
         state.distribution[rowId] = {};
     }
 
-    state.distribution[rowId][state.currentTeacher] = value;
+    state.distribution[rowId][state.currentTeacher] = raw;
 
     updateRowTeachersAttribute(row);
 
@@ -396,7 +392,7 @@ function handleCellInput(event) {
     }
 
     updateDistributedColors();
-    updateTeacherStats(); // Добавьте эту строку для обновления статистики
+    updateTeacherStats();
 }
 
 function updateRowTeachersAttribute(row) {
