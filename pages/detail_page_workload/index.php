@@ -243,7 +243,6 @@ if (isset($tableRows['error']) && $tableRows['error'] === true) {
                                 <div>МинКол = <span class="min-kol-value"><?= $teacherHours[$teacher['Сотрудник']] ?? 0 ?></span> / <?= (float)($teacher['МинКол'] ?? 0) ?></div>
                                 <div>МаксКол = <span class="max-kol-value"><?= $teacherHours[$teacher['Сотрудник']] ?? 0 ?></span> / <?= (float)($teacher['МаксКол'] ?? 0) ?></div></div>
                         </button>
-                        <br>
                     <?php endif; ?>
                 <?php endforeach; ?>
             <?php else: ?>
