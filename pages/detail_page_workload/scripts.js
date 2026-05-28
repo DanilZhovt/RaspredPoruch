@@ -20,7 +20,6 @@ const elements = {
 };
 
 if (typeof module !== 'undefined' && module.exports) {
-    // Для тестов - экспортируем функции и состояние
     module.exports = {
         parseNumber,
         getTeachersFromRow,
@@ -43,7 +42,6 @@ if (typeof module !== 'undefined' && module.exports) {
         init
     };
 } else {
-    // Для браузера - запускаем автоматически
     init();
 }
 
@@ -139,17 +137,21 @@ function resetTeacherSelection() {
     elements.rows.forEach(row =>
         row.classList.remove('highlight', 'active-row')
     );
+
+    state.currentTeacher = null;
 }
 
 function highlightTeacherRows(teacher) {
     elements.rows.forEach(row => {
         const rowId = row.dataset.id;
-        const teachersFromData = getTeachersFromRow(row);
+
         const teachersFromState = state.distribution[rowId]
             ? Object.keys(state.distribution[rowId]).filter(key =>
                 key !== '_base' && state.distribution[rowId][key] > 0
             )
             : [];
+
+        const teachersFromData = getTeachersFromRow(row);
 
         const allTeachers = [...new Set([...teachersFromData, ...teachersFromState])];
 
@@ -218,6 +220,8 @@ function handleCellBlur(event) {
         const row = cell.closest('tr');
         updateRowTeachersAttribute(row);
 
+        highlightTeacherRows(state.currentTeacher);
+
         renderTable();
     }
 }
@@ -269,6 +273,10 @@ function handleCellInput(event) {
     state.distribution[rowId][state.currentTeacher] = value;
 
     updateRowTeachersAttribute(row);
+
+    if (state.currentTeacher) {
+        highlightTeacherRows(state.currentTeacher);
+    }
 
     updateDistributedColors();
 }
