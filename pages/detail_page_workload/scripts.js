@@ -145,18 +145,20 @@ function highlightTeacherRows(teacher) {
     elements.rows.forEach(row => {
         const rowId = row.dataset.id;
 
-        const teachersFromState = state.distribution[rowId]
-            ? Object.keys(state.distribution[rowId]).filter(key =>
-                key !== '_base' && state.distribution[rowId][key] > 0
-            )
-            : [];
+        // Проверяем, есть ли у преподавателя ненулевое значение в state
+        const hasValueInState = state.distribution[rowId]
+            && state.distribution[rowId][teacher]
+            && state.distribution[rowId][teacher] > 0;
 
+        // Проверяем в данных из атрибута
         const teachersFromData = getTeachersFromRow(row);
+        const hasValueInData = teachersFromData.includes(teacher);
 
-        const allTeachers = [...new Set([...teachersFromData, ...teachersFromState])];
-
-        if (allTeachers.includes(teacher)) {
+        // Подсвечиваем, только если есть ненулевое значение хотя бы в одном источнике
+        if (hasValueInState || hasValueInData) {
             row.classList.add('highlight');
+        } else {
+            row.classList.remove('highlight');
         }
     });
 }
@@ -274,8 +276,21 @@ function handleCellInput(event) {
 
     updateRowTeachersAttribute(row);
 
+    // Сначала убираем все подсветки, потом добавляем заново
+    row.classList.remove('highlight');
+
     if (state.currentTeacher) {
-        highlightTeacherRows(state.currentTeacher);
+        // Проверяем, нужно ли подсвечивать эту строку
+        const hasValueInState = state.distribution[rowId]
+            && state.distribution[rowId][state.currentTeacher]
+            && state.distribution[rowId][state.currentTeacher] > 0;
+
+        const teachersFromData = getTeachersFromRow(row);
+        const hasValueInData = teachersFromData.includes(state.currentTeacher);
+
+        if (hasValueInState || hasValueInData) {
+            row.classList.add('highlight');
+        }
     }
 
     updateDistributedColors();
@@ -285,12 +300,14 @@ function updateRowTeachersAttribute(row) {
     const rowId = row.dataset.id;
     const teachersData = state.distribution[rowId] || {};
 
+    // Только преподаватели с ненулевым значением
     const teachersWithHours = Object.entries(teachersData)
         .filter(([key, value]) => key !== '_base' && value > 0)
         .map(([key]) => key);
 
     row.dataset.teachers = JSON.stringify(teachersWithHours);
 
+    // Для teachersHours сохраняем всех, включая с нулевым значением
     const teachersHoursData = Object.entries(teachersData)
         .filter(([key]) => key !== '_base')
         .map(([key, value]) => ({
