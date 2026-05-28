@@ -233,14 +233,15 @@ if (isset($tableRows['error']) && $tableRows['error'] === true) {
                                 type="button"
                                 class="teacher-btn"
                                 data-teacher="<?= htmlspecialchars($teacher['Сотрудник']) ?>"
+                                data-min-kol="<?= (float)($teacher['МинКол'] ?? 0) ?>"
+                                data-max-kol="<?= (float)($teacher['МаксКол'] ?? 0) ?>"
                         >
                             <div>
                                 <strong><?= htmlspecialchars($teacher['Сотрудник']) ?></strong><br>
                                 <?= htmlspecialchars($teacher['Должность'] ?? '') ?><br>
                                 <?= htmlspecialchars($teacher['Ставка'] ?? '') ?><br>
-                                <div>МинКол = <?= $teacherHours[$teacher['Сотрудник']] ?? 0 ?> / <?= (float)($teacher['МинКол'] ?? 0) ?></div>
-                                <div>МаксКол = <?= $teacherHours[$teacher['Сотрудник']] ?? 0 ?> / <?= (float)($teacher['МаксКол'] ?? 0) ?></div>
-                            </div>
+                                <div>МинКол = <span class="min-kol-value"><?= $teacherHours[$teacher['Сотрудник']] ?? 0 ?></span> / <?= (float)($teacher['МинКол'] ?? 0) ?></div>
+                                <div>МаксКол = <span class="max-kol-value"><?= $teacherHours[$teacher['Сотрудник']] ?? 0 ?></span> / <?= (float)($teacher['МаксКол'] ?? 0) ?></div></div>
                         </button>
                         <br>
                     <?php endif; ?>

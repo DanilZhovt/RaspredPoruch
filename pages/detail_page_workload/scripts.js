@@ -3,6 +3,46 @@ const state = {
     distribution: {}
 };
 
+const teacherInitialHours = {};
+
+function calculateTeacherCurrentHours(teacherName) {
+    let totalHours = 0;
+
+    elements.rows.forEach(row => {
+        const rowId = row.dataset.id;
+        const rowData = state.distribution[rowId] || {};
+
+        if (rowData[teacherName] && rowData[teacherName] > 0) {
+            totalHours += parseFloat(rowData[teacherName]);
+        }
+    });
+
+    return totalHours;
+}
+
+function updateTeacherStats() {
+    elements.teacherButtons.forEach(button => {
+        const teacher = button.dataset.teacher?.trim();
+        if (!teacher) return;
+
+        const currentHours = calculateTeacherCurrentHours(teacher);
+        const minKol = parseFloat(button.dataset.minKol) || 0;
+        const maxKol = parseFloat(button.dataset.maxKol) || 0;
+
+        // Ищем элементы с классами min-kol-value и max-kol-value
+        const minKolValue = button.querySelector('.min-kol-value');
+        const maxKolValue = button.querySelector('.max-kol-value');
+
+        if (minKolValue) {
+            minKolValue.textContent = currentHours;
+        }
+
+        if (maxKolValue) {
+            maxKolValue.textContent = currentHours;
+        }
+    });
+}
+
 const selectors = {
     rows: 'table tr[data-id]',
     distributed: '.distributed',
@@ -59,6 +99,7 @@ function init() {
 
     setEditingEnabled(false);
     renderTable();
+    updateTeacherStats();
 }
 
 function bindKeyboardShortcuts() {
@@ -286,8 +327,8 @@ function handleCellBlur(event) {
         updateRowTeachersAttribute(row);
 
         highlightTeacherRows(state.currentTeacher);
-
         renderTable();
+        updateTeacherStats(); // Добавьте эту строку
     }
 }
 
@@ -355,6 +396,7 @@ function handleCellInput(event) {
     }
 
     updateDistributedColors();
+    updateTeacherStats(); // Добавьте эту строку для обновления статистики
 }
 
 function updateRowTeachersAttribute(row) {
