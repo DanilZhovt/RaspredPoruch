@@ -41,22 +41,27 @@ if (isset($tableRows['error']) && $tableRows['error'] === true) {
         $teachers = [];
     }
 
-    foreach ($tableRows as $row) {
-        if (empty($row['Сотрудники'])) continue;
+    // Проверяем, есть ли преподаватели после всех проверок
+    if (empty($teachers)) {
+        $errorMessage = 'Нет доступных преподавателей для данного документа';
+    } else {
+        foreach ($tableRows as $row) {
+            if (empty($row['Сотрудники'])) continue;
 
-        foreach ($row['Сотрудники'] as $t) {
-            $name = trim($t['Сотрудник'] ?? '');
-            if (!$name) continue;
+            foreach ($row['Сотрудники'] as $t) {
+                $name = trim($t['Сотрудник'] ?? '');
+                if (!$name) continue;
 
-            $hours = (float)($t['Количество'] ?? 0);
+                $hours = (float)($t['Количество'] ?? 0);
 
-            if ($hours <= 0) continue;
+                if ($hours <= 0) continue;
 
-            if (!isset($teacherHours[$name])) {
-                $teacherHours[$name] = 0;
+                if (!isset($teacherHours[$name])) {
+                    $teacherHours[$name] = 0;
+                }
+
+                $teacherHours[$name] += $hours;
             }
-
-            $teacherHours[$name] += $hours;
         }
     }
 }
