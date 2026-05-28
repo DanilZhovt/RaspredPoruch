@@ -55,9 +55,67 @@ function init() {
     bindGenerateReport();
     bindRowSelection();
     bindHeaderToggle();
+    bindKeyboardShortcuts();
 
     setEditingEnabled(false);
     renderTable();
+}
+
+function bindKeyboardShortcuts() {
+    document.querySelectorAll(selectors.distributed).forEach(cell => {
+        cell.addEventListener('keydown', function(event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
+            }
+        }, true);
+
+        cell.addEventListener('beforeinput', function(event) {
+            if (event.inputType === 'historyUndo' || event.inputType === 'historyRedo') {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
+            }
+        }, true);
+
+        cell.addEventListener('input', function(event) {
+            if (event.inputType === 'historyUndo' || event.inputType === 'historyRedo') {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
+            }
+        }, true);
+    });
+
+    document.addEventListener('keydown', function(event) {
+        if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+            const activeElement = document.activeElement;
+            if (activeElement && activeElement.classList.contains('distributed')) {
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+                return false;
+            }
+        }
+    }, true);
+
+    if (elements.table) {
+        elements.table.addEventListener('keydown', function(event) {
+            if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+                const activeElement = document.activeElement;
+                if (activeElement && activeElement.classList.contains('distributed')) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    return false;
+                }
+            }
+        }, true);
+    }
 }
 
 function initDistribution() {
@@ -145,16 +203,13 @@ function highlightTeacherRows(teacher) {
     elements.rows.forEach(row => {
         const rowId = row.dataset.id;
 
-        // Проверяем, есть ли у преподавателя ненулевое значение в state
         const hasValueInState = state.distribution[rowId]
             && state.distribution[rowId][teacher]
             && state.distribution[rowId][teacher] > 0;
 
-        // Проверяем в данных из атрибута
         const teachersFromData = getTeachersFromRow(row);
         const hasValueInData = teachersFromData.includes(teacher);
 
-        // Подсвечиваем, только если есть ненулевое значение хотя бы в одном источнике
         if (hasValueInState || hasValueInData) {
             row.classList.add('highlight');
         } else {
@@ -208,8 +263,16 @@ function bindTableEditing() {
         .forEach(cell => {
             cell.addEventListener('keypress', validateCellInput);
             cell.addEventListener('blur', handleCellBlur);
-
             cell.addEventListener('focus', selectCellText);
+
+            cell.addEventListener('keydown', function(event) {
+                if ((event.ctrlKey || event.metaKey) && event.key === 'z') {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    event.stopImmediatePropagation();
+                    return false;
+                }
+            });
         });
 }
 
@@ -276,11 +339,9 @@ function handleCellInput(event) {
 
     updateRowTeachersAttribute(row);
 
-    // Сначала убираем все подсветки, потом добавляем заново
     row.classList.remove('highlight');
 
     if (state.currentTeacher) {
-        // Проверяем, нужно ли подсвечивать эту строку
         const hasValueInState = state.distribution[rowId]
             && state.distribution[rowId][state.currentTeacher]
             && state.distribution[rowId][state.currentTeacher] > 0;
@@ -300,14 +361,12 @@ function updateRowTeachersAttribute(row) {
     const rowId = row.dataset.id;
     const teachersData = state.distribution[rowId] || {};
 
-    // Только преподаватели с ненулевым значением
     const teachersWithHours = Object.entries(teachersData)
         .filter(([key, value]) => key !== '_base' && value > 0)
         .map(([key]) => key);
 
     row.dataset.teachers = JSON.stringify(teachersWithHours);
 
-    // Для teachersHours сохраняем всех, включая с нулевым значением
     const teachersHoursData = Object.entries(teachersData)
         .filter(([key]) => key !== '_base')
         .map(([key, value]) => ({
